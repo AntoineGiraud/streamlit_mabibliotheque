@@ -8,84 +8,116 @@ import re
 OMDB_API_KEY = st.secrets["omdb"]["api_key"]
 
 st.set_page_config(page_title="Recherche par code-barres", page_icon="📚")
-st.title("Recherche auto films 📹 / livres 📚 par code-barres")
+st.title("Recherche par code-barre 📹📚")
 
 
 # ------------------------
 # FONCTIONS D'APPEL API
 # ------------------------
-def get_movie_metadata(query):
-    url = f"http://www.omdbapi.com/?apikey={OMDB_API_KEY}&t={query}"
-    resp = requests.get(url)
-    if resp.status_code == 200:
-        data = resp.json()
-        print(f"{data=}")
-        if data.get("Response") == "True":
-            return dict(
-                data,
-                **{
-                    "Titre": data.get("Title"),
-                    "Année": data.get("Year"),
-                    "Réalisateur": data.get("Director"),
-                    "Couverture": data.get("Poster"),
-                },
-            )
+
+
+def get_product_from_upcitemdb(upc_code: int) -> dict:
+    """,
+    Interroge l'API UPCitemdb pour récupérer les infos d'un produit via son code-barres.
+    """
+    url = f"https://api.upcitemdb.com/prod/trial/lookup?upc={upc_code}"
+    response = requests.get(url)
+    response.raise_for_status()
+
+    data = response.json()
+    if data.get("code") == "OK" and data.get("total", 0) > 0:
+        item = data["items"][0]
+        return dict(
+            {
+                "Titre": item.get("title"),
+                "Marque": item.get("brand"),
+                "Catégorie": item.get("category"),
+                "Couverture": item.get("images", [None])[0],
+                "Type": "Film" if "DVD" in item.get("category") else item.get("category"),
+            },
+            **item,
+        )
     return None
 
 
-def get_book_metadata(isbn):
+def get_movie_metadata(title: str) -> dict:
+    """
+    Récupérer des données imdb d'un film ...
+    mais imposible depuis un code barre EAN-13... donc on écarte
+    i pour un code imdb, t pour un titre
+    """
+    url = f"http://www.omdbapi.com/?apikey={OMDB_API_KEY}&t={title}"
+    response = requests.get(url)
+    response.raise_for_status()
+
+    item = response.json()
+    print(f"{item=}")
+    if item.get("Response") == "True":
+        return dict(
+            {
+                "Titre": item.get("Title"),
+                "Année": item.get("Year"),
+                "Réalisateur": item.get("Director"),
+                "Couverture": item.get("Poster"),
+                "Type": "Film",
+            },
+            **item,
+        )
+    return None
+
+
+def get_book_metadata(isbn: int) -> dict:
     url = f"https://www.googleapis.com/books/v1/volumes?q=isbn:{isbn}"
-    resp = requests.get(url)
-    if resp.status_code == 200:
-        items = resp.json().get("items")
-        if items:
-            data = items[0]["volumeInfo"]
-            image = data.get("imageLinks", {}).get("thumbnail")
-            # return data
-            return dict(
-                data,
-                **{
-                    "Titre": data.get("title"),
-                    "Auteur": ", ".join(data.get("authors", [])),
-                    "Année": data.get("publishedDate"),
-                    "Couverture": image,
-                },
-            )
+    response = requests.get(url)
+    response.raise_for_status()
+
+    items = response.json().get("items")
+    if items:
+        item = items[0]["volumeInfo"]
+        image = item.get("imageLinks", {}).get("thumbnail")
+        # return item
+        return dict(
+            {
+                "Titre": item.get("title"),
+                "Auteur": ", ".join(item.get("authors", [])),
+                "Année": item.get("publishedDate"),
+                "Couverture": image,
+                "Type": "Livre",
+            },
+            **item,
+        )
     return None
 
 
-def guess_type(code):
+def fetch_barcode_data(code: int) -> dict:
     """Devine si c'est un livre ou un film à partir du code."""
-    if re.fullmatch(r"\d{10}|\d{13}", code):
-        return "Livre/BD"
+    if not code.is_integer():
+        raise "Le code doit être un entier"
+    elif str(code).startswith(("978", "979", "977")):
+        return get_book_metadata(code)
     else:
-        return "Film"
+        return get_product_from_upcitemdb(code)
 
 
 # ------------------------
 # UI
 # ------------------------
-code_input = st.text_input("Le code-barres")
+code_input = st.number_input("Le code-barres du film ou du livre", step=1, value=None, placeholder="Type a number...")
 
-if st.button("Rechercher"):
-    if not code_input.strip():
-        st.warning("Veuillez entrer un code-barres ou un titre.")
+if st.button("Rechercher") and code_input:
+    with st.spinner("🔍 Recherche en cours..."):
+        result = fetch_barcode_data(code_input)
+        type_detecte = result.get("Type")
+        type_detecte_emoji = "📹" if type_detecte == "Livre" else "📚"
+
+    if result:
+        st.subheader(f"Résultat : {type_detecte_emoji} {type_detecte}")
+
+        cols = st.columns((3, 1))
+        cols[0].json(result)
+        img_url = result.get("Couverture")
+        if img_url:
+            cols[1].image(img_url, caption=result.get("Titre", ""))
+
     else:
-        with st.spinner("🔍 Recherche en cours..."):
-            type_detecte = guess_type(code_input)
-            if type_detecte == "Film":
-                result = get_movie_metadata(code_input)
-            else:
-                result = get_book_metadata(code_input)
-
-        if result:
-            st.subheader(f"Résultats ({type_detecte})")
-
-            cols = st.columns((3, 1))
-            cols[0].json(result)
-            img_url = result.get("Couverture")
-            if img_url:
-                cols[1].image(img_url, caption=result.get("Titre", ""))
-
-        else:
-            st.error(f"Aucune donnée trouvée pour ce {type_detecte.lower()}.")
+        st.info(f"Aucune donnée trouvée pour `{type_detecte.lower()}`")
