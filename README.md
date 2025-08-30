@@ -1,8 +1,15 @@
-# Streamlit & Snowflake demo
+# Ma bibliothèque Streamlit 📚
 
-Démos pour apprendre Streamlit avec Snowflake
+Voici une app Streamlit afin d'inventorier le contenu de sa bibliothèque (Livres, BD, DVD, CD ...)
 
-![screenshot_streamlit_demo](./screenshot_streamlit_demo.png)
+On saisie/scanne le code barre à l'arrière de nos produits (EAN-13 principalement), l'app streamlit retourne les metadonnées liées.
+On pourra alors choisir d'ajouter l'objet à notre bibliothèque (à venir)
+
+![demo_recherche_codebarre](./demo_recherche_codebarre.png)
+
+Si c'est un **livre** (code débutant par 978/979/977), on s'appuie sur l'api books de Google (1000 appels par jour). **Sinon**, on utilise l'api de [UPCitemdb](https://www.upcitemdb.com/api/explorer#!/lookup/get_trial_lookup) (50 appels par jour)
+
+**Note:** Etaient pressentis pour rapprocher un code-bare à son film les [datasets IMDb](https://developer.imdb.com/non-commercial-datasets/) ou l'api [omdbapi.com](https://www.omdbapi.com). Malheureusement, ceux-ci ne comportent pas les codes EAN-13 empêchant tout rapprochement.
 
 ## Inspirations & ressources
 
