@@ -20,6 +20,6 @@ Si c'est un **livre** (code débutant par 978/979/977), on s'appuie sur l'api bo
 - by Streamlit
   - [Create a multi-app page](https://docs.streamlit.io/get-started/tutorials/create-a-multipage-app)
   - [Snowflake connexion](https://docs.streamlit.io/develop/tutorials/databases/snowflake#write-your-streamlit-app)
-- by Streamlit Community
-  - [Inventory Management System](https://sumaiyaansarihere-inventory-management-system-app-ovsbbn.streamlit.app) [github/sumaiyaansarihere](https://github.com/sumaiyaansarihere/Inventory-Management-System)
-  - [Fresh Grocery Inventory](https://your-repository-name-5p5a7eh584xfpqjrqizvvh.streamlit.app/) [github/Abdul84-stack](https://github.com/Abdul84-stack/grocery-inventory-app)
+- from the Streamlit Community (inventory apps)
+  - [Inventory Management System](https://sumaiyaansarihere-inventory-management-system-app-ovsbbn.streamlit.app) by [github/sumaiyaansarihere](https://github.com/sumaiyaansarihere/Inventory-Management-System)
+  - [Fresh Grocery Inventory](https://your-repository-name-5p5a7eh584xfpqjrqizvvh.streamlit.app/) by [github/Abdul84-stack](https://github.com/Abdul84-stack/grocery-inventory-app)
