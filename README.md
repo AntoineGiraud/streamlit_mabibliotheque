@@ -11,6 +11,13 @@ Si c'est un **livre** (code débutant par 978/979/977), on s'appuie sur l'api bo
 
 **Note:** Etaient pressentis pour rapprocher un code-bare à son film les [datasets IMDb](https://developer.imdb.com/non-commercial-datasets/) ou l'api [omdbapi.com](https://www.omdbapi.com). Malheureusement, ceux-ci ne comportent pas les codes EAN-13 empêchant tout rapprochement.
 
+
+## Installation & commandes
+
+1. installer uv 👉 cf. [doc astral/uv](https://docs.astral.sh/uv/getting-started/installation/)
+2. lancer l'app streamlit : `uv run streamlit run home.py`
+
+
 ## Inspirations & ressources
 
 - by [Gaël Penessot](https://github.com/gpenessot)
