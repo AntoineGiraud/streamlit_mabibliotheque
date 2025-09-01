@@ -111,10 +111,10 @@ code_input = st.number_input(
 if st.button("Rechercher") and code_input:
     with st.spinner("🔍 Recherche en cours..."):
         result = fetch_barcode_data(code_input)
-        type_detecte = result.get("Type")
-        type_detecte_emoji = "📚" if type_detecte == "Livre" else "📹"
 
     if result:
+        type_detecte = result.get("Type")
+        type_detecte_emoji = "📚" if type_detecte == "Livre" else "📹"
         st.subheader(f"{type_detecte_emoji} {type_detecte} `{result.get('Titre', '')}`")
 
         if st.button("Ajouter à ma bibliothèque", type="primary", icon="💾") and code_input:
@@ -127,4 +127,4 @@ if st.button("Rechercher") and code_input:
             cols[1].image(img_url, caption=result.get("Titre", ""))
 
     else:
-        st.info(f"Aucune donnée trouvée pour `{type_detecte.lower()}`")
+        st.info(f"Aucune donnée trouvée pour `{code_input}`")
