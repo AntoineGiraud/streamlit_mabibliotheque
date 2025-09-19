@@ -1,4 +1,5 @@
 import streamlit as st
+import duckdb
 import pandas as pd
 from sqlmodel import Session, select
 from db.engine import get_engine
@@ -14,7 +15,7 @@ with Session(engine) as session:
 df = pd.DataFrame([item.model_dump() for item in items])
 
 # Édition en place
-edited_df = st.data_editor(df, num_rows="dynamic", use_container_width=True)
+edited_df = st.data_editor(df, num_rows="dynamic", width="stretch")
 
 # Détection des modifications
 if st.button("💾 Sauvegarder les modifications"):
@@ -25,13 +26,15 @@ if st.button("💾 Sauvegarder les modifications"):
                 for field in row.index:
                     setattr(item, field, row[field])
                 session.add(item)
+            else:  # new row ??
+                item = Item(**row)
+                session.add(item)
         session.commit()
         st.success("Modifications enregistrées.")
 
-# Suppression directe
-for i, row in df.iterrows():
-    if st.button(f"🗑️ Supprimer {row['titre']}", key=f"delete_{row['id']}"):
-        with Session(engine) as session:
+    with Session(engine) as session:
+        # Suppression directe
+        for i, row in df.iterrows():
             item = session.get(Item, row["id"])
             if item:
                 session.delete(item)

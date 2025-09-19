@@ -10,3 +10,4 @@ wheels/
 .venv
 .streamlit/secrets.toml
 *.db
+*.duckdb
