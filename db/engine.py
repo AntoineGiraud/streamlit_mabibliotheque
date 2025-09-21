@@ -1,5 +1,5 @@
 import streamlit as st
-from sqlmodel import create_engine
+from sqlmodel import create_engine, SQLModel
 
 
 @st.cache_resource
@@ -18,4 +18,8 @@ def get_engine():
         st.error(f"Type de base non supporté : {db_type}")
         return None
 
-    return create_engine(db_url, echo=True)
+    engine = create_engine(db_url, echo=True)
+
+    SQLModel.metadata.create_all(engine, checkfirst=True)
+
+    return engine

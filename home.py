@@ -7,8 +7,6 @@ st.set_page_config(page_title="Ma biblothèque", page_icon="🧰", layout="wide"
 
 
 engine = get_engine()
-if engine:
-    SQLModel.metadata.create_all(engine)
 
 
 with open("README.md", "r", encoding="utf-8") as file:
