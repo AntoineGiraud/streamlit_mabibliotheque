@@ -9,11 +9,11 @@ st.title("📋 Liste interactive des items")
 
 engine = get_engine()
 with Session(engine) as session:
-    items = session.exec(select(Item)).all()
-    items_by_id = {item.id: item for item in items}
+    current_items = session.exec(select(Item)).all()
+    current_items_by_id = {item.id: item for item in current_items}
 
 # Transformer en DataFrame
-df = pl.DataFrame([item.model_dump() for item in items])
+df = pl.DataFrame([item.model_dump() for item in current_items])
 
 column_config = {
     "id": st.column_config.Column("ID", disabled=True, width="small"),
@@ -29,38 +29,56 @@ column_config = {
 edited_df = st.data_editor(
     df,
     num_rows="dynamic",
-    width="stretch",
+    width="content",
     column_config=column_config,
     column_order=("titre", "auteur", "annee", "type", "genre", "note", "id"),
+    hide_index=True,
 )
 
 # Détection des modifications
 if st.button("💾 Sauvegarder les modifications"):
     with Session(engine) as session:
-        id_restant = []
-        for i, row in edited_df.iterrows():
-            item = items_by_id.get(row["id"])
-            id_restant.append(row["id"])
-            print(f"{row=}")
-            print(f"{item=}")
-            if item and item.model_dump() != row.to_dict():
-                item = Item(**row)
-                session.add(item)
-            elif not item:  # new row ??
+        items_to_update = []
+        items_to_create = []
+        existing_ids = set()
+
+        # on repère les insert & update
+        for row in edited_df.iter_rows(named=True):
+            print(f"  {row=}")
+            item_id = row.get("id")
+
+            item = current_items_by_id.get(item_id)
+            print(f"  {item=}")
+            if item_id and item_id in current_items_by_id:
+                existing_ids.add(item_id)
+                if item and item.model_dump() != row:
+                    item = Item(**row)
+                    items_to_update.append(item)
+                    session.merge(item)
+            elif not item_id:  # new row ??
                 row.pop("id")
                 item = Item(**row)
+                items_to_create.append(item)
                 session.add(item)
-        session.commit()
 
-    with Session(engine) as session:
-        print("Deletion ??")
-        print(f"{id_restant=}")
+        # Identifier les items à supprimer
+        items_to_delete = [item for item in current_items if item.id not in existing_ids]
+
         # Suppression directe
-        for item in items:
-            print(f"{item=}")
-            if item.id not in id_restant:
-                session.delete(item)
-        session.commit()
+        for item in items_to_delete:
+            session.delete(item)
 
-    st.toast("Modifications enregistrées.")
-    st.rerun()
+        print("Bilan des courses")
+        print(f"{items_to_update=}")
+        print(f"{items_to_create=}")
+        print(f"{items_to_delete=}")
+
+        # allez go on pousse à la db
+        session.commit()
+        recap = {
+            "insert": len(items_to_create),
+            "update": len(items_to_update),
+            "delete": len(items_to_delete),
+        }
+    if sum(recap.values()) > 0:
+        st.info(f"Modifications enregistrées. {recap=}")

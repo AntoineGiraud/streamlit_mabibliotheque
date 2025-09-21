@@ -3,7 +3,6 @@ from models.item import Item
 from db.engine import get_engine
 from sqlmodel import Session
 from utils.form_generator import render_form
-from models.item import Item
 
 
 st.title("➕ Ajouter un nouvel item")
