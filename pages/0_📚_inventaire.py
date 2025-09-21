@@ -1,36 +1,30 @@
 import streamlit as st
-import duckdb
-import polars as pl
+
 from sqlmodel import Session, select
-from db.engine import get_engine
 from models.item import Item, MediaType
+
+import db.crud as crud
+import db.engine as engine
+import polars as pl
+
 
 st.title("📋 Liste interactive des items")
 
-engine = get_engine()
-with Session(engine) as session:
-    current_items = session.exec(select(Item)).all()
-    current_items_by_id = {item.id: item for item in current_items}
 
-# Transformer en DataFrame
-df = pl.DataFrame([item.model_dump() for item in current_items])
+engine = engine.get_engine()
 
-column_config = {
-    "id": st.column_config.Column("ID", disabled=True, width="small"),
-    "titre": st.column_config.TextColumn("Titre", required=True),
-    "auteur": st.column_config.TextColumn("Auteur"),
-    "annee": st.column_config.NumberColumn("Année", min_value=1900, max_value=2030, step=1, format="%d"),
-    "type": st.column_config.SelectboxColumn("Type", options=[e.value for e in MediaType], required=True),
-    "genre": st.column_config.TextColumn("Genre"),
-    "note": st.column_config.NumberColumn("Note", min_value=0, max_value=5, step=1, format="%d"),
-}
+# On fait un peu de cache
+if "item_all" not in st.session_state:
+    with Session(engine) as session:
+        items = st.session_state["item_all"] = session.exec(select(Item)).all()
+        st.session_state["item_all_df"] = pl.DataFrame([item.model_dump() for item in items])
 
 # Édition en place
 edited_df = st.data_editor(
-    df,
+    st.session_state["item_all_df"],
     num_rows="dynamic",
     width="content",
-    column_config=column_config,
+    column_config=Item.get_streamlit_column_config(),
     column_order=("titre", "auteur", "annee", "type", "genre", "note", "id"),
     hide_index=True,
 )
@@ -38,47 +32,14 @@ edited_df = st.data_editor(
 # Détection des modifications
 if st.button("💾 Sauvegarder les modifications"):
     with Session(engine) as session:
-        items_to_update = []
-        items_to_create = []
-        existing_ids = set()
+        print("💾 On sauvegarde")
 
-        # on repère les insert & update
-        for row in edited_df.iter_rows(named=True):
-            print(f"  {row=}")
-            item_id = row.get("id")
+        recap = crud.sync_dataframe_to_db(session, Item, edited_df, current_items=st.session_state["item_all"])
+        print(f"💾 Modifications enregistrées. {recap=}")
 
-            item = current_items_by_id.get(item_id)
-            print(f"  {item=}")
-            if item_id and item_id in current_items_by_id:
-                existing_ids.add(item_id)
-                if item and item.model_dump() != row:
-                    item = Item(**row)
-                    items_to_update.append(item)
-                    session.merge(item)
-            elif not item_id:  # new row ??
-                row.pop("id")
-                item = Item(**row)
-                items_to_create.append(item)
-                session.add(item)
+        if sum(recap.values()) > 0:
+            # on actualise le cache
+            items = st.session_state["item_all"] = session.exec(select(Item)).all()
+            st.session_state["item_all_df"] = pl.DataFrame([item.model_dump() for item in items])
 
-        # Identifier les items à supprimer
-        items_to_delete = [item for item in current_items if item.id not in existing_ids]
-
-        # Suppression directe
-        for item in items_to_delete:
-            session.delete(item)
-
-        print("Bilan des courses")
-        print(f"{items_to_update=}")
-        print(f"{items_to_create=}")
-        print(f"{items_to_delete=}")
-
-        # allez go on pousse à la db
-        session.commit()
-        recap = {
-            "insert": len(items_to_create),
-            "update": len(items_to_update),
-            "delete": len(items_to_delete),
-        }
-    if sum(recap.values()) > 0:
-        st.info(f"Modifications enregistrées. {recap=}")
+            st.info(f"Modifications enregistrées. {recap=}")

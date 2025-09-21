@@ -1,9 +1,11 @@
 from sqlmodel import SQLModel, Field
-from typing import Optional
+from typing import Optional, Dict
 from enum import Enum
 
 from sqlalchemy.dialects import sqlite
 from sqlalchemy.schema import CreateTable
+
+from streamlit import column_config
 
 
 class MediaType(str, Enum):
@@ -24,6 +26,19 @@ class Item(SQLModel, table=True):
     genre: Optional[str]
     note: Optional[int] = Field(default=None, ge=0, le=5)
     # other: Optional[dict]
+
+    def get_streamlit_column_config() -> Dict:
+        """Retourne la configuration des colonnes pour st.data_editor."""
+
+        return {
+            "id": column_config.Column("ID", disabled=True, width="small"),
+            "titre": column_config.TextColumn("Titre", required=True),
+            "auteur": column_config.TextColumn("Auteur"),
+            "annee": column_config.NumberColumn("Année", min_value=1900, max_value=2030, step=1, format="%d"),
+            "type": column_config.SelectboxColumn("Type", options=[e.value for e in MediaType], required=True),
+            "genre": column_config.TextColumn("Genre"),
+            "note": column_config.NumberColumn("Note", min_value=0, max_value=5, step=1, format="%d"),
+        }
 
 
 if __name__ == "__main__":

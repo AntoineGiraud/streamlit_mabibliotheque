@@ -11,3 +11,27 @@ wheels/
 .streamlit/secrets.toml
 *.db
 *.duckdb
+
+
+# Logs et debug
+*.log
+logs/
+debug/
+
+# IDE et éditeurs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Données temporaires
+temp/
+tmp/
+cache/
+
+# Documentation générée
+docs/_build/
