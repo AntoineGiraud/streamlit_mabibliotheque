@@ -43,6 +43,7 @@ class Item(SQLModel, table=True):
 
         return {
             "id": column_config.Column("ID", disabled=True, width="small"),
+            "isbn": column_config.Column("Isbn", disabled=True),
             "titre": column_config.TextColumn("Titre", required=True),
             "auteur": column_config.TextColumn("Auteur"),
             "annee": column_config.NumberColumn("Année", min_value=1900, max_value=2030, step=1, format="%d"),
