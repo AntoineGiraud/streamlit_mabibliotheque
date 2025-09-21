@@ -4,9 +4,9 @@ from sqlmodel import create_engine
 
 @st.cache_resource
 def get_engine():
-    secrets = st.secrets.get("database", {"db_type": "sqlite", "db_name": "ma_biblio"})
-    db_type = secrets["db_type"]
-    db_name = secrets["db_name"]
+    secrets = st.secrets.get("database", {})
+    db_type = secrets.get("db_type", "sqlite")
+    db_name = secrets.get("db_name", "ma_biblio")
 
     if db_type == "sqlite":
         db_url = f"sqlite:///{db_name}.db"
