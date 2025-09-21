@@ -9,7 +9,6 @@ from models.item import Item, MediaType
 # ------------------------
 # CONFIG
 # ------------------------
-OMDB_API_KEY = st.secrets["omdb"]["api_key"]
 
 st.set_page_config(page_title="Recherche par code-barres", page_icon="📚")
 st.title("Recherche par code-barre 📹📚")
