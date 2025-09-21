@@ -15,8 +15,8 @@ CREATE TABLE item (
 
 insert into item (titre, auteur, annee, type, genre, note)
 values
-('Dream Team', 'Ludovic Girodon', 2024, 'LIVRE', 'Entreprise', 5),
-('Fundamentals of Data Engineering', 'Joe Reis', 2023, 'LIVRE', 'Entreprise', 4)
+('Dream Team', 'Ludovic Girodon', 2024, 'Livre', 'Entreprise', 5),
+('Fundamentals of Data Engineering', 'Joe Reis', 2023, 'Livre', 'Entreprise', 4)
 ;
 
 select * from item;

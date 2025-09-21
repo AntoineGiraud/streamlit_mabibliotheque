@@ -3,11 +3,25 @@ Module CRUD générique pour les opérations de base de données.
 Fournit des fonctions réutilisables pour synchroniser des DataFrames avec la DB.
 """
 
-from typing import List, Dict, Any, TypeVar, Type, Tuple, Optional
-from sqlmodel import SQLModel, Session, select
 import polars as pl
 
+from typing import List, Dict, Any, TypeVar, Type, Tuple, Optional
+from sqlmodel import SQLModel, Session, select
+from models.item import Item, MediaType
+
+
 T = TypeVar("T", bound=SQLModel)
+
+
+def fetch_model_into_streamlitsessionstate(
+    session: Session,
+    session_state,
+    model_class: Type[T] = Item,
+):
+    class_name = model_class.__name__.lower()
+    # on actualise le cache
+    items = session_state[f"{class_name}_all"] = session.exec(select(model_class)).all()
+    session_state[f"{class_name}_all_df"] = pl.DataFrame([item.model_dump(exclude=["other"]) for item in items])
 
 
 def sync_dataframe_to_db(

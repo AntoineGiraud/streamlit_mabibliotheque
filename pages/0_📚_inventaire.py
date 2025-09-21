@@ -16,8 +16,7 @@ engine = engine.get_engine()
 # On fait un peu de cache
 if "item_all" not in st.session_state:
     with Session(engine) as session:
-        items = st.session_state["item_all"] = session.exec(select(Item)).all()
-        st.session_state["item_all_df"] = pl.DataFrame([item.model_dump() for item in items])
+        crud.fetch_model_into_streamlitsessionstate(session, st.session_state, Item)
 
 # Édition en place
 edited_df = st.data_editor(
@@ -33,13 +32,11 @@ edited_df = st.data_editor(
 if st.button("💾 Sauvegarder les modifications"):
     with Session(engine) as session:
         print("💾 On sauvegarde")
-
         recap = crud.sync_dataframe_to_db(session, Item, edited_df, current_items=st.session_state["item_all"])
-        print(f"💾 Modifications enregistrées. {recap=}")
 
         if sum(recap.values()) > 0:
-            # on actualise le cache
-            items = st.session_state["item_all"] = session.exec(select(Item)).all()
-            st.session_state["item_all_df"] = pl.DataFrame([item.model_dump() for item in items])
+            crud.fetch_model_into_streamlitsessionstate(session, st.session_state, Item)
 
             st.info(f"Modifications enregistrées. {recap=}")
+
+    print(f"    ✅ {recap=}")
