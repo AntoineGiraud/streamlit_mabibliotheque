@@ -30,7 +30,7 @@ class Item(SQLModel, table=True):
     note: Optional[int] = Field(default=None, ge=0, le=5)
     language: Optional[str]
     description: Optional[str]
-    longueur: Optional[int]
+    longueur: Optional[int] = Field(default=None, ge=0, le=5000)
     # autres champs
     editeur: Optional[str]
     couverture: Optional[str]
