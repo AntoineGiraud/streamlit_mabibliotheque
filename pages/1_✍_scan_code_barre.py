@@ -2,7 +2,7 @@ import streamlit as st
 import requests
 
 import db.crud as crud
-import db.engine as engine
+from db.connection import get_connection
 
 from sqlmodel import Session
 from models.item import Item, MediaType
@@ -78,8 +78,8 @@ if st.session_state.get("scanned_item") and st.session_state["scanned_item_isbn"
     st.subheader(f"{type_detecte_emoji} {type_detecte} `{item.titre}`")
 
     if st.button("Ajouter à ma bibliothèque", type="primary", icon="💾") and code_input:
-        engine = engine.get_engine()
-        with Session(engine, expire_on_commit=False) as session:
+        db_conn = get_connection()
+        with Session(db_conn.engine, expire_on_commit=False) as session:
             session.add(item.copy())
             session.commit()  # On envoie à la base de données
 

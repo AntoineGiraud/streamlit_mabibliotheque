@@ -4,18 +4,18 @@ from sqlmodel import Session, select
 from models.item import Item, MediaType
 
 import db.crud as crud
-import db.engine as engine
+from db.connection import get_connection
 import polars as pl
 
 
 st.title("📋 Liste interactive des items")
 
 
-engine = engine.get_engine()
+db_conn = get_connection()
 
 # On fait un peu de cache
 if "item_all" not in st.session_state:
-    with Session(engine) as session:
+    with Session(db_conn.engine) as session:
         crud.fetch_model_into_streamlitsessionstate(session, st.session_state, Item)
 
 # Édition en place
@@ -30,7 +30,7 @@ edited_df = st.data_editor(
 
 # Détection des modifications
 if st.button("💾 Sauvegarder les modifications"):
-    with Session(engine) as session:
+    with Session(db_conn.engine) as session:
         print("💾 On sauvegarde")
         recap = crud.sync_dataframe_to_db(session, Item, edited_df, current_items=st.session_state["item_all"])
 

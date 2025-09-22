@@ -64,7 +64,7 @@ def sync_dataframe_to_db(
             existing_item = current_items_by_id[item_id]
             existing_ids.add(item_id)
 
-            if existing_item.model_dump() != row:
+            if existing_item.model_dump(exclude=["other"]) != row:
                 # Créer un nouvel objet avec les données mises à jour
                 updated_item = model_class(**row)
                 items_to_update.append(updated_item)
