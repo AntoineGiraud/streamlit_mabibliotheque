@@ -1,4 +1,5 @@
 import streamlit as st
+import requests
 
 import db.crud as crud
 import db.engine as engine
