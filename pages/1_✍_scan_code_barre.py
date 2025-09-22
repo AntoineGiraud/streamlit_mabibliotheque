@@ -35,21 +35,26 @@ def fetch_barcode_data(code: int) -> dict:
 # ------------------------
 # UI
 # ------------------------
-code_input = st.number_input(
-    "Le code-barres du film ou du livre",
-    step=1,
-    value=None,
-    placeholder="Type a number...",
-    key="scanned_item_isbn",
-)
 
-if st.button("Rechercher") and code_input:
+with st.form("scan_form", clear_on_submit=False):
+    code_input = st.number_input(
+        "Le code-barres du film ou du livre",
+        step=1,
+        value=None,
+        placeholder="Type a number...",
+        key="scanned_item_code",
+    )
+    submitted = st.form_submit_button("Rechercher")
+
+
+if submitted and code_input:
     with st.spinner("🔍 Recherche en cours..."):
         item = st.session_state["scanned_item"] = fetch_barcode_data(code_input)
     if not item:
         st.info(f"Aucune donnée trouvée pour `{code_input}`")
 
-if st.session_state.get("scanned_item") and st.session_state["scanned_item_isbn"]:
+
+if st.session_state.get("scanned_item") and st.session_state["scanned_item_code"]:
     item = st.session_state["scanned_item"]
 
     type_detecte = item.type
