@@ -34,7 +34,7 @@ class Item(SQLModel, table=True):
     # autres champs
     editeur: Optional[str]
     couverture: Optional[str]
-    isbn: Optional[int] = Field(default=None, ge=1e10, le=1e14)
+    code: Optional[int] = Field(default=None, ge=1e10, le=1e14)
     other: Optional[dict] = Field(default=None, sa_type=JSON)
 
     @staticmethod
@@ -43,7 +43,7 @@ class Item(SQLModel, table=True):
 
         return {
             "id": column_config.Column("ID", disabled=True, width="small"),
-            "isbn": column_config.Column("Isbn", disabled=True),
+            "code": column_config.Column("Code", disabled=True),
             "titre": column_config.TextColumn("Titre", required=True),
             "auteur": column_config.TextColumn("Auteur"),
             "annee": column_config.NumberColumn("Année", min_value=1900, max_value=2030, step=1, format="%d"),
@@ -54,9 +54,9 @@ class Item(SQLModel, table=True):
         }
 
     @staticmethod
-    def get_book_from_isbn(isbn: int) -> SQLModel:
-        """Fetch book from isbn & init Item"""
-        url = f"https://www.googleapis.com/books/v1/volumes?q=isbn:{isbn}"
+    def from_googleapi_books(code: int) -> SQLModel:
+        """Fetch book from googleapis.com by it's isbn code"""
+        url = f"https://www.googleapis.com/books/v1/volumes?q=isbn:{code}"
         response = requests.get(url)
         response.raise_for_status()
 
@@ -67,7 +67,52 @@ class Item(SQLModel, table=True):
             final = {
                 "type": "Livre",
                 "genre": item.get("categories", [None])[0],
-                "isbn": isbn,
+                "code": code,
+                "titre": item.get("title"),
+                "auteur": ", ".join(item.get("authors", [])),
+                "annee": int(item.get("publishedDate")[:4]),
+                "language": item.get("language"),
+                "longueur": item.get("pageCount"),
+                "editeur": item.get("publisher"),
+                "couverture": item.get("imageLinks", {}).get("thumbnail"),
+            }
+
+            # on garde pour l'instant au cas où les autres champs de l'api
+            for key in ["categories", "title", "authors", "publishedDate", "language", "pageCount", "publisher", "imageLinks", "industryIdentifiers", "readingModes", "panelizationSummary"]:
+                item.pop(key, None)
+            final["other"] = item
+
+            return Item(**final)
+        return None
+
+    @staticmethod
+    def from_upcitemdb(code: int) -> SQLModel:
+        """
+        Fetch book from UPCitemdb.com by it's code\n
+        doc: https://www.upcitemdb.com/api/explorer#!/lookup/get_trial_lookup
+        """
+
+        url = f"https://api.upcitemdb.com/prod/trial/lookup?upc={code}"
+        response = requests.get(url)
+        response.raise_for_status()
+
+        data = response.json()
+        if data.get("code") == "OK" and data.get("total", 0) > 0:
+            item = data["items"][0]
+            fianl = dict(
+                {
+                    "Titre": item.get("title"),
+                    "Marque": item.get("brand"),
+                    "Catégorie": item.get("category"),
+                    "Couverture": (item.get("images") or [None])[0],
+                    "Type": "Film" if "dvd" in item.get("category").lower() else item.get("category"),
+                },
+                **item,
+            )
+            final = {
+                "type": "Livre",
+                "genre": item.get("categories", [None])[0],
+                "code": isbn,
                 "titre": item.get("title"),
                 "auteur": ", ".join(item.get("authors", [])),
                 "annee": int(item.get("publishedDate")[:4]),

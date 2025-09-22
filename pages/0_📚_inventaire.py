@@ -23,7 +23,7 @@ edited_df = st.data_editor(
     num_rows="dynamic",
     width="content",
     column_config=Item.get_streamlit_column_config(),
-    column_order=("titre", "auteur", "annee", "type", "genre", "note", "id", "isbn"),
+    column_order=("titre", "auteur", "annee", "type", "genre", "note", "id", "code"),
     hide_index=True,
 )
 

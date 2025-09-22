@@ -18,39 +18,18 @@ st.title("Recherche par code-barre 📹📚")
 # ------------------------
 # FONCTIONS D'APPEL API
 # ------------------------
-def get_product_metadata(code: int) -> dict:
-    """
-    Interroge l'API UPCitemdb pour récupérer les infos d'un produit via son code-barres.\n
-    doc: https://www.upcitemdb.com/api/explorer#!/lookup/get_trial_lookup
-    """
-    url = f"https://api.upcitemdb.com/prod/trial/lookup?upc={code}"
-    response = requests.get(url)
-    response.raise_for_status()
-
-    data = response.json()
-    if data.get("code") == "OK" and data.get("total", 0) > 0:
-        item = data["items"][0]
-        return dict(
-            {
-                "Titre": item.get("title"),
-                "Marque": item.get("brand"),
-                "Catégorie": item.get("category"),
-                "Couverture": (item.get("images") or [None])[0],
-                "Type": "Film" if "dvd" in item.get("category").lower() else item.get("category"),
-            },
-            **item,
-        )
-    return None
 
 
 def fetch_barcode_data(code: int) -> dict:
     """Récupérer les métadonnées de produits (livre, bd, dvd, cd ...) avec l'api la plus adaptée"""
     if not code.is_integer():
         raise "Le code doit être un entier"
-    elif str(code).startswith(("978", "979", "977")):
-        return Item.get_book_from_isbn(code)
-    else:
-        return get_product_metadata(code)
+    item = None
+    if str(code).startswith(("978", "979", "977")):
+        item = Item.from_googleapi_books(code)
+    if not item:
+        item = Item.from_upcitemdb(code)
+    return item
 
 
 # ------------------------
