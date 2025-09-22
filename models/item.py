@@ -7,7 +7,7 @@ from sqlalchemy.dialects import sqlite
 from sqlalchemy.schema import CreateTable
 from sqlalchemy import JSON
 
-from streamlit import column_config
+import streamlit as st
 
 
 class MediaType(str, Enum):
@@ -42,18 +42,19 @@ class Item(SQLModel, table=True):
         """Retourne la configuration des colonnes pour st.data_editor."""
 
         return {
-            "id": column_config.Column("ID", disabled=True, width="small"),
-            "code": column_config.Column("Code", disabled=True),
-            "titre": column_config.TextColumn("Titre", required=True),
-            "auteur": column_config.TextColumn("Auteur"),
-            "annee": column_config.NumberColumn("Année", min_value=1900, max_value=2030, step=1, format="%d"),
-            "type": column_config.SelectboxColumn("Type", options=[e.value for e in MediaType], required=True),
-            "genre": column_config.TextColumn("Genre"),
-            "longueur": column_config.NumberColumn("Longueur", min_value=0, max_value=5000, step=1, format="%d"),
-            "note": column_config.NumberColumn("Note", min_value=0, max_value=5, step=1, format="%d"),
+            "id": st.column_config.Column("ID", disabled=True, width="small"),
+            "code": st.column_config.Column("Code", disabled=True),
+            "titre": st.column_config.TextColumn("Titre", required=True),
+            "auteur": st.column_config.TextColumn("Auteur"),
+            "annee": st.column_config.NumberColumn("Année", min_value=1900, max_value=2030, step=1, format="%d"),
+            "type": st.column_config.SelectboxColumn("Type", options=[e.value for e in MediaType], required=True),
+            "genre": st.column_config.TextColumn("Genre"),
+            "longueur": st.column_config.NumberColumn("Longueur", min_value=0, max_value=5000, step=1, format="%d"),
+            "note": st.column_config.NumberColumn("Note", min_value=0, max_value=5, step=1, format="%d"),
         }
 
     @staticmethod
+    @st.cache_data
     def from_googleapi_books(code: int) -> SQLModel:
         """Fetch book from googleapis.com by it's isbn code"""
         url = f"https://www.googleapis.com/books/v1/volumes?q=isbn:{code}"
@@ -86,6 +87,7 @@ class Item(SQLModel, table=True):
         return None
 
     @staticmethod
+    @st.cache_data
     def from_upcitemdb(code: int) -> SQLModel:
         """
         Fetch book from UPCitemdb.com by it's code\n
@@ -112,7 +114,7 @@ class Item(SQLModel, table=True):
             final = {
                 "type": "Livre",
                 "genre": item.get("categories", [None])[0],
-                "code": isbn,
+                "code": code,
                 "titre": item.get("title"),
                 "auteur": ", ".join(item.get("authors", [])),
                 "annee": int(item.get("publishedDate")[:4]),
