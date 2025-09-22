@@ -83,8 +83,7 @@ if st.session_state.get("scanned_item") and st.session_state["scanned_item_isbn"
             session.add(item.copy())
             session.commit()  # On envoie à la base de données
 
-            crud.fetch_model_into_streamlitsessionstate(session, st.session_state, Item)
-
+        crud.fetch_model_into_streamlitsessionstate(st.session_state, Item)
         st.success(f"{item.titre} ajouté")
 
     # affichage du résultat en cours

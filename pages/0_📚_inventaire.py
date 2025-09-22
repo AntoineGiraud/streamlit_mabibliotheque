@@ -15,8 +15,7 @@ db_conn = get_connection()
 
 # On fait un peu de cache
 if "item_all" not in st.session_state:
-    with Session(db_conn.engine) as session:
-        crud.fetch_model_into_streamlitsessionstate(session, st.session_state, Item)
+    crud.fetch_model_into_streamlitsessionstate(st.session_state, Item)
 
 # Édition en place
 edited_df = st.data_editor(
@@ -34,9 +33,9 @@ if st.button("💾 Sauvegarder les modifications"):
         print("💾 On sauvegarde")
         recap = crud.sync_dataframe_to_db(session, Item, edited_df, current_items=st.session_state["item_all"])
 
-        if sum(recap.values()) > 0:
-            crud.fetch_model_into_streamlitsessionstate(session, st.session_state, Item)
+    if sum(recap.values()) > 0:
+        crud.fetch_model_into_streamlitsessionstate(st.session_state, Item)
 
-            st.info(f"Modifications enregistrées. {recap=}")
+        st.info(f"Modifications enregistrées. {recap=}")
 
     print(f"    ✅ {recap=}")
