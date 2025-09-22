@@ -17,9 +17,24 @@ db_conn = get_connection()
 if "item_all" not in st.session_state:
     crud.fetch_model_into_streamlitsessionstate(st.session_state, Item)
 
+# --------------------------------
+# afficher les stats
+# --------------------------------
+df = st.session_state["item_all_df"]
+counts = df.group_by("type").count()
+counts = {cat: nb for cat, nb in counts.iter_rows()}
+
+cols = st.columns(4)
+for i, key in enumerate(["Livre", "BD", "DVD", "CD"]):
+    cols[i].metric(label=key, value=counts.get(key), border=True)
+
+# 9782226500342 - jardin
+# 9782843784477 - mots
+# --------------------------------
 # Édition en place
+# --------------------------------
 edited_df = st.data_editor(
-    st.session_state["item_all_df"],
+    df,
     num_rows="dynamic",
     width="content",
     column_config=Item.get_streamlit_column_config(),

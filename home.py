@@ -11,10 +11,14 @@ st.set_page_config(page_title="Ma biblothèque", page_icon="🧰", layout="wide"
 if "item_all" not in st.session_state:
     crud.fetch_model_into_streamlitsessionstate(st.session_state, Item)
 
+
+# --------------------------------
+# afficher les stats
+# --------------------------------
 df = st.session_state["item_all_df"]
+counts = df.group_by("type").len()
+counts = {cat: nb for cat, nb in counts.iter_rows()}
 
-counts = df.group_by("type").count()
-
-cols = st.columns(len(counts))
-for col, (cat, nb) in zip(cols, counts.iter_rows()):
-    col.metric(label=f"{cat}", value=nb, border=True)
+cols = st.columns(4)
+for i, key in enumerate(["Livre", "BD", "DVD", "CD"]):
+    cols[i].metric(label=key, value=counts.get(key), border=True)
