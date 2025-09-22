@@ -30,7 +30,7 @@ def get_connection():
         nb_items = session.exec(select(func.count()).select_from(Item)).one()
 
         # Si aucun item, insérer quelques exemples
-        if nb_items == 0:
+        if not nb_items:
             exemples = [
                 Item(titre="Livre A", type="Livre"),
                 Item(titre="Livre B", type="Livre"),
@@ -44,6 +44,6 @@ def get_connection():
             st.success("Exemples insérés dans la table item.")
 
         # Charger dans session_state
-        crud.fetch_model_into_streamlitsessionstate(session, st.session_state, Item)
+        crud.fetch_model_into_streamlitsessionstate(st.session_state, Item, session)
 
     return db_conn

@@ -33,9 +33,9 @@ if st.button("💾 Sauvegarder les modifications"):
         print("💾 On sauvegarde")
         recap = crud.sync_dataframe_to_db(session, Item, edited_df, current_items=st.session_state["item_all"])
 
-    if sum(recap.values()) > 0:
-        crud.fetch_model_into_streamlitsessionstate(st.session_state, Item)
+        if sum(recap.values()) > 0:
+            crud.fetch_model_into_streamlitsessionstate(st.session_state, Item, session)
 
-        st.info(f"Modifications enregistrées. {recap=}")
+            st.info(f"Modifications enregistrées. {recap=}")
 
     print(f"    ✅ {recap=}")

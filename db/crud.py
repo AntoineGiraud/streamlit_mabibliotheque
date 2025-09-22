@@ -17,13 +17,17 @@ T = TypeVar("T", bound=SQLModel)
 def fetch_model_into_streamlitsessionstate(
     session_state,
     model_class: Type[T] = Item,
+    session: Session = None,
 ):
-    db_conn = get_connection()
-    with Session(db_conn.engine) as session:
-        class_name = model_class.__name__.lower()
-        # on actualise le cache
-        items = session_state[f"{class_name}_all"] = session.exec(select(model_class)).all()
-        session_state[f"{class_name}_all_df"] = pl.DataFrame([item.model_dump(exclude=["other"]) for item in items])
+    if not session:
+        db_conn = get_connection()
+        with Session(db_conn.engine) as s:
+            session = s
+
+    class_name = model_class.__name__.lower()
+    # on actualise le cache
+    items = session_state[f"{class_name}_all"] = session.exec(select(model_class)).all()
+    session_state[f"{class_name}_all_df"] = pl.DataFrame([item.model_dump(exclude=["other"]) for item in items])
 
 
 def sync_dataframe_to_db(
