@@ -5,9 +5,21 @@ from models.item import Item
 import db.crud as crud
 
 
+from streamlit.runtime.secrets import StreamlitSecretNotFoundError
+
+
+def load_database_secrets():
+    try:
+        secrets = st.secrets.get("database", {})
+    except StreamlitSecretNotFoundError:
+        st.warning("⚠️ Fichier `secrets.toml` manquant. Utilisation des valeurs par défaut. `sqlite:///db/ma_biblio.db`")
+        secrets = {"db_type": "sqlite", "db_name": "ma_biblio"}
+    return secrets
+
+
 @st.cache_resource
 def get_connection():
-    secrets = st.secrets.get("database", {})
+    secrets = load_database_secrets()
     db_type = secrets.get("db_type", "sqlite")
     db_name = secrets.get("db_name", "ma_biblio")
 

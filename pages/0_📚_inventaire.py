@@ -16,11 +16,11 @@ db_conn = get_connection()
 # On fait un peu de cache
 if "item_all" not in st.session_state:
     crud.fetch_model_into_streamlitsessionstate(st.session_state, Item)
+df = st.session_state["item_all_df"]
 
 # --------------------------------
 # afficher les stats
 # --------------------------------
-df = st.session_state["item_all_df"]
 counts = df.group_by("type").count()
 counts = {cat: nb for cat, nb in counts.iter_rows()}
 
