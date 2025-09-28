@@ -1,4 +1,4 @@
-from sqlmodel import SQLModel, Field
+from sqlmodel import SQLModel, Field, select, Session
 from typing import Optional, Dict
 import requests
 
@@ -28,7 +28,7 @@ class Item(SQLModel, table=True):
     # autres champs
     editeur: Optional[str]
     couverture: Optional[str]
-    code: Optional[int] = Field(default=None, ge=1e10, le=1e14)
+    code: Optional[int] = Field(default=None, ge=1e10, le=1e14, index=True)
     other: Optional[dict] = Field(default=None, sa_type=JSON)
 
     @property
@@ -51,42 +51,80 @@ class Item(SQLModel, table=True):
             "note": st.column_config.NumberColumn("Note", min_value=0, max_value=5, step=1, format="%d"),
         }
 
-    @staticmethod
+    @classmethod
+    def get_or_create(cls, code: int, session: Session) -> Optional["Item"]:
+        if not isinstance(code, int):
+            raise ValueError("Le code doit être un entier")
+
+        item = session.exec(select(cls).where(cls.code == code)).first()
+        if item:
+            st.info(f"{item.type.title} déjà présent dans la biblithèque")
+            return item
+
+        item = cls.from_barcode(code, session)
+        if item:
+            session.add(item)
+            st.success(f"{item.type.title} ajouté à la bibliothèque")
+            session.commit()
+            return item
+
+        st.warning(f"Aucune donnée trouvée pour `{code}`")
+        return None
+
+    @classmethod
+    def from_barcode(cls, code: int, session: Session) -> Optional["Item"]:
+        """Récupérer les métadonnées de produits (livre, bd, dvd, cd ...) avec l'API la plus adaptée"""
+        if not isinstance(code, int):
+            raise ValueError("Le code doit être un entier")
+
+        item = None
+        if str(code).startswith(("978", "979", "977")):
+            item = cls.from_googleapi_books(code)
+        if not item:  # allez on essaie avec upc, google n'a rien trouvé
+            item = cls.from_upcitemdb(code)
+        return item
+
+    @classmethod
     @st.cache_data
-    def from_googleapi_books(code: int) -> SQLModel:
-        """Fetch book from googleapis.com by it's isbn code"""
+    def from_googleapi_books(cls, code: int) -> Optional["Item"]:
+        """Fetch book from googleapis.com by its ISBN code and return an Item instance"""
         url = f"https://www.googleapis.com/books/v1/volumes?q=isbn:{code}"
         response = requests.get(url)
-        response.raise_for_status()
+        if not response.ok:
+            return None
 
         items = response.json().get("items")
         if items:
-            item = items[0]["volumeInfo"]
-            # print(f"{item=}")
+            item: dict = items[0]["volumeInfo"]
             final = {
                 "type": "Livre",
                 "genre": item.get("categories", [None])[0],
                 "code": code,
                 "titre": item.get("title"),
                 "auteur": ", ".join(item.get("authors", [])),
-                "annee": int(item.get("publishedDate")[:4]),
+                "annee": int(item.get("publishedDate", "0000")[:4]) or None,
                 "language": item.get("language"),
                 "longueur": item.get("pageCount"),
                 "editeur": item.get("publisher"),
                 "couverture": item.get("imageLinks", {}).get("thumbnail"),
             }
 
-            # on garde pour l'instant au cas où les autres champs de l'api
+            # retirer les champs principaux déjà extraits
             for key in ["categories", "title", "authors", "publishedDate", "language", "pageCount", "publisher", "imageLinks", "industryIdentifiers", "readingModes", "panelizationSummary"]:
                 item.pop(key, None)
-            final["other"] = item
 
-            return Item(**final)
+            # faire le ménage & retirer les valeurs vides
+            for k, v in item.copy().items():
+                if not v:
+                    item.pop(k, None)
+
+            final["other"] = item
+            return cls(**final)
         return None
 
-    @staticmethod
+    @classmethod
     @st.cache_data
-    def from_upcitemdb(code: int) -> SQLModel:
+    def from_upcitemdb(cls, code: int) -> Optional["Item"]:
         """
         Fetch book from UPCitemdb.com by it's code\n
         doc: https://www.upcitemdb.com/api/explorer#!/lookup/get_trial_lookup
@@ -94,40 +132,34 @@ class Item(SQLModel, table=True):
 
         url = f"https://api.upcitemdb.com/prod/trial/lookup?upc={code}"
         response = requests.get(url)
-        response.raise_for_status()
+        if not response.ok:
+            return None
 
         data = response.json()
         if data.get("code") == "OK" and data.get("total", 0) > 0:
-            item = data["items"][0]
-            fianl = dict(
-                {
-                    "Titre": item.get("title"),
-                    "Marque": item.get("brand"),
-                    "Catégorie": item.get("category"),
-                    "Couverture": (item.get("images") or [None])[0],
-                    "Type": "Film" if "dvd" in item.get("category").lower() else item.get("category"),
-                },
-                **item,
-            )
+            item: dict = data["items"][0]
             final = {
-                "type": "Livre",
-                "genre": item.get("categories", [None])[0],
+                "type": MediaType.from_upc_category(item.get("category")),
                 "code": code,
-                "titre": item.get("title"),
-                "auteur": ", ".join(item.get("authors", [])),
-                "annee": int(item.get("publishedDate")[:4]),
-                "language": item.get("language"),
-                "longueur": item.get("pageCount"),
-                "editeur": item.get("publisher"),
-                "couverture": item.get("imageLinks", {}).get("thumbnail"),
+                "titre": item.get("title").strip("."),
+                "annee": int(item.get("publishedDate", "0000")[:4]) or None,
+                "editeur": item.get("publisher") or item.get("brand"),
+                "couverture": (item.get("images") or [None])[0],
             }
+            if final.get("couverture") and "no_image" in final.get("couverture").lower():
+                final.pop("couverture", None)
 
-            # on garde pour l'instant au cas où les autres champs de l'api
-            for key in ["categories", "title", "authors", "publishedDate", "language", "pageCount", "publisher", "imageLinks", "industryIdentifiers", "readingModes", "panelizationSummary"]:
+            # retirer les champs principaux déjà extraits
+            for key in ["title", "authors", "publishedDate", "language", "pageCount", "images", "offers", "publisher", "brand"]:
                 item.pop(key, None)
-            final["other"] = item
 
-            return Item(**final)
+            # faire le ménage & retirer les valeurs vides
+            for k, v in item.copy().items():
+                if not v:
+                    item.pop(k, None)
+
+            final["other"] = item
+            return cls(**final)
         return None
 
 
