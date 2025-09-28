@@ -21,7 +21,7 @@ df = st.session_state["item_all_df"]
 # --------------------------------
 # afficher les stats
 # --------------------------------
-counts = df.group_by("type").count()
+counts = df.group_by("type").len()
 counts = {cat: nb for cat, nb in counts.iter_rows()}
 
 cols = st.columns(4)
@@ -43,7 +43,7 @@ edited_df = st.data_editor(
 )
 
 # Détection des modifications
-if st.button("💾 Sauvegarder les modifications"):
+if st.button("💾 Sauvegarder les modifications", type="primary"):
     with Session(db_conn.engine) as session:
         print("💾 On sauvegarde")
         recap = crud.sync_dataframe_to_db(session, Item, edited_df, current_items=st.session_state["item_all"])
@@ -52,5 +52,6 @@ if st.button("💾 Sauvegarder les modifications"):
             crud.fetch_model_into_streamlitsessionstate(st.session_state, Item, session)
 
             st.info(f"Modifications enregistrées. {recap=}")
+            st.rerun()
 
     print(f"    ✅ {recap=}")
