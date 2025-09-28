@@ -5,7 +5,7 @@ import db.crud as crud
 from db.connection import get_connection
 
 from sqlmodel import Session
-from models.item import Item, MediaType
+from models.item import Item
 
 # ------------------------
 # CONFIG

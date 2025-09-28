@@ -1,6 +1,5 @@
 from sqlmodel import SQLModel, Field
 from typing import Optional, Dict
-from enum import Enum
 import requests
 
 from sqlalchemy.dialects import sqlite
@@ -9,12 +8,7 @@ from sqlalchemy import JSON
 
 import streamlit as st
 
-
-class MediaType(str, Enum):
-    CD = "CD"
-    Livre = "Livre"
-    BD = "BD"
-    DVD = "DVD"
+from models.media_type import MediaType
 
 
 class Item(SQLModel, table=True):
@@ -36,6 +30,10 @@ class Item(SQLModel, table=True):
     couverture: Optional[str]
     code: Optional[int] = Field(default=None, ge=1e10, le=1e14)
     other: Optional[dict] = Field(default=None, sa_type=JSON)
+
+    @property
+    def label_with_emoji(self) -> str:
+        return f"{self.type.emoji} {self.type.value} `{self.titre}`"
 
     @staticmethod
     def get_streamlit_column_config() -> Dict:

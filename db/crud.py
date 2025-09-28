@@ -7,7 +7,7 @@ import polars as pl
 
 from typing import List, Dict, Any, TypeVar, Type, Tuple, Optional
 from sqlmodel import SQLModel, Session, select
-from models.item import Item, MediaType
+from models.item import Item
 
 from db.connection import get_connection
 

@@ -1,7 +1,7 @@
 import streamlit as st
 
 from sqlmodel import Session, select
-from models.item import Item, MediaType
+from models.item import Item
 
 import db.crud as crud
 from db.connection import get_connection
