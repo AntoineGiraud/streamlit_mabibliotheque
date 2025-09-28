@@ -12,13 +12,13 @@ if "item_all" not in st.session_state:
     crud.fetch_model_into_streamlitsessionstate(st.session_state, Item)
 
 
-# --------------------------------
-# afficher les stats
-# --------------------------------
-df = st.session_state["item_all_df"]
-counts = df.group_by("type").len()
-counts = {cat: nb for cat, nb in counts.iter_rows()}
+# Création des pages pour la navigation
+pages = [
+    st.Page("pages/0_📚_inventaire.py", title="Inventaire", icon="📚"),
+    st.Page("pages/1_✍_scan_code_barre.py", title="Scan code barre", icon="✍"),
+    st.Page("pages/2_📝_ajout_item.py", title="Ajout item", icon="📝"),
+]
 
-cols = st.columns(4)
-for i, key in enumerate(["Livre", "BD", "DVD", "CD"]):
-    cols[i].metric(label=key, value=counts.get(key), border=True)
+# Navigation active en position TOP (moderne !)
+pg = st.navigation(pages, position="sidebar")
+pg.run()
