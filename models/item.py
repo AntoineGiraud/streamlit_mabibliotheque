@@ -5,6 +5,8 @@ import requests
 from sqlalchemy.dialects import sqlite
 from sqlalchemy.schema import CreateTable
 from sqlalchemy import JSON
+from sqlalchemy import Enum as SAEnum
+
 
 import streamlit as st
 
@@ -18,7 +20,7 @@ class Item(SQLModel, table=True):
     # attributs principaux
     titre: str
     auteur: Optional[str]
-    type: MediaType
+    type: MediaType = Field(sa_type=SAEnum(MediaType))
     genre: Optional[str]
     annee: Optional[int] = Field(default=None, ge=1900, le=2030)
     note: Optional[int] = Field(default=None, ge=0, le=5)
@@ -33,6 +35,8 @@ class Item(SQLModel, table=True):
 
     @property
     def label_with_emoji(self) -> str:
+        if not isinstance(self.type, MediaType):
+            self.type = MediaType(self.type)
         return f"{self.type.emoji} {self.type.value} `{self.titre}`"
 
     @staticmethod
