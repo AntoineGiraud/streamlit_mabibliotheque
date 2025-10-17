@@ -1,5 +1,6 @@
 import streamlit as st
-from models.item import Item
+
+from models import Item, MediaType
 from db.connection import get_connection
 from sqlmodel import Session
 from utils.form_generator import render_form

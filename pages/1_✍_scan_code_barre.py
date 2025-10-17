@@ -1,12 +1,10 @@
 import streamlit as st
-import requests
 
-import db.crud as crud
+from db import crud
 from db.connection import get_connection
 
 from sqlmodel import Session
-from models.item import Item
-from models.media_type import MediaType
+from models import Item, MediaType
 from services.item_service import ItemService
 
 
