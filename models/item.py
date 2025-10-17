@@ -9,7 +9,6 @@ from sqlalchemy import JSON
 import streamlit as st
 
 from models.media_type import MediaType
-from pydantic import field_validator
 
 
 class Item(SQLModel, table=True):
@@ -31,16 +30,6 @@ class Item(SQLModel, table=True):
     couverture: Optional[str]
     code: Optional[int] = Field(default=None, ge=1e10, le=1e14, index=True)
     other: Optional[dict] = Field(default=None, sa_type=JSON)
-
-    @field_validator("type", mode="before")
-    @classmethod
-    def ensure_media_type(cls, v):
-        if isinstance(v, MediaType):
-            return v
-        try:
-            return MediaType(v)
-        except ValueError:
-            raise ValueError(f"Type inconnu pour MediaType : {v}")
 
     @property
     def label_with_emoji(self) -> str:
@@ -108,7 +97,7 @@ class Item(SQLModel, table=True):
         if items:
             item: dict = items[0]["volumeInfo"]
             final = {
-                "type": "Livre",
+                "type": MediaType.Livre,
                 "genre": item.get("categories", [None])[0],
                 "code": code,
                 "titre": item.get("title"),
