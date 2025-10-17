@@ -35,8 +35,9 @@ if submitted and code_input:
     with st.spinner("🔍 Recherche en cours..."):
         db_conn = get_connection()
         with Session(db_conn.engine, expire_on_commit=False) as session:
-            item = Item.get_or_create(code_input, session)
-            if item and not item.id:
+            item, is_new = Item.get_or_create(code_input, session)
+            print(f"{item=}, nouveau={is_new}")
+            if item and is_new:
                 crud.fetch_model_into_streamlitsessionstate(st.session_state, Item, session)
     if item:
         st.subheader(item.label_with_emoji)

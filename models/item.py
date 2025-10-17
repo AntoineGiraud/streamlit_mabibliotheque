@@ -54,24 +54,24 @@ class Item(SQLModel, table=True):
         }
 
     @classmethod
-    def get_or_create(cls, code: int, session: Session) -> Optional["Item"]:
+    def get_or_create(cls, code: int, session: Session) -> tuple[Optional["Item"], bool]:
         if not isinstance(code, int):
             raise ValueError("Le code doit être un entier")
 
         item = session.exec(select(cls).where(cls.code == code)).first()
         if item:
             st.info(f"{item.type.title} déjà présent dans la biblithèque")
-            return item
+            return item, False  # ← EXISTANT
 
         item = cls.from_barcode(code, session)
         if item:
             session.add(item)
             st.success(f"{item.type.title} ajouté à la bibliothèque")
             session.commit()
-            return item
+            return item, True  # ← NOUVEAU
 
         st.warning(f"Aucune donnée trouvée pour `{code}`")
-        return None
+        return None, False
 
     @classmethod
     def from_barcode(cls, code: int, session: Session) -> Optional["Item"]:
