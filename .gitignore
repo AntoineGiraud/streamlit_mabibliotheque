@@ -35,3 +35,4 @@ cache/
 
 # Documentation générée
 docs/_build/
+*.duckdb.wal

@@ -6,6 +6,9 @@ import streamlit as st
 from models.item import Item
 from models.media_type import MediaType
 
+import duckdb
+import os
+
 
 class ItemService:
     @staticmethod
@@ -18,7 +21,7 @@ class ItemService:
             st.info(f"{item.type.title} déjà présent dans la biblithèque")
             return item, False  # ← EXISTANT
 
-        item = ItemService.from_barcode(code, session)
+        item = ItemService.from_barcode(code)
         if item:
             session.add(item)
             st.success(f"{item.type.title} ajouté à la bibliothèque")
@@ -29,18 +32,90 @@ class ItemService:
         return None, False
 
     @staticmethod
-    def from_barcode(code: int, session: Session) -> Optional["Item"]:
-        """Essaie de récupérer un item (livre, bd, dvd, cd ...)  via ISBN ou UPC"""
+    def from_barcode(code: int) -> Optional[Item]:
+        """Essaie de récupérer un item (livre, bd, dvd, cd ...) via ISBN ou UPC"""
         if not isinstance(code, int):
             raise ValueError("Le code doit être un entier")
 
-        item = None
+        # 1. Appel API Google si ISBN
         if str(code).startswith(("978", "979", "977")):
             item = ItemService.from_googleapi_books(code)
-        if not item:  # allez on essaie avec upc, google n'a rien trouvé
-            item = ItemService.from_upcitemdb(code)
 
+            # 2. Bonification via fichier local BD (si trouvé)
+            if item:
+                enriched = ItemService.enrich_with_local_bd_data(item, code)
+                return enriched
+
+            # 3. Si Google échoue, fallback Parquet BD
+            item = ItemService.from_local_bd_dataset(code)
+            if item:
+                return item
+
+        # 4. Fallback UPC
+        return ItemService.from_upcitemdb(code)
+
+
+    @staticmethod
+    def enrich_with_local_bd_data(item: Item, code: int) -> Item:
+        """Cherche dans le .parquet si l'ISBN correspond à une BD et enrichit l'item"""
+        parquet_path = "data/isbn_nudger_BD.parquet"
+        if not os.path.exists(parquet_path):
+            return item  # Fichier absent → rien à faire
+
+        query = f"""
+            SELECT title, editeur, nb_page
+            FROM '{parquet_path}'
+            WHERE isbn = {code}
+            LIMIT 1
+        """
+
+        try:
+            result = duckdb.sql(query).fetchone()
+        except Exception as e:
+            st.warning(f"Erreur DuckDB : {e}")
+            return item
+
+        if result:
+            title, editeur, nb_page = result
+            item.type = MediaType.BD
+            if title:
+                item.titre = title
+            if editeur:
+                item.editeur = editeur
+            if nb_page and str(nb_page).isdigit():
+                item.longueur = int(nb_page)
         return item
+
+    @staticmethod
+    def from_local_bd_dataset(code: int) -> Optional[Item]:
+        """Construit un Item à partir des données locales si le code correspond à une BD"""
+        parquet_path = "data/isbn_nudger_BD.parquet"
+        if not os.path.exists(parquet_path):
+            return None
+
+        query = f"""
+            SELECT title, editeur, nb_page
+            FROM '{parquet_path}'
+            WHERE isbn = {code}
+            LIMIT 1
+        """
+        try:
+            result = duckdb.sql(query).fetchone()
+        except Exception as e:
+            st.warning(f"Erreur DuckDB fallback : {e}")
+            return None
+
+        if result:
+            title, editeur, nb_page = result
+            return Item(
+                code=code,
+                titre=title or "Titre inconnu",
+                editeur=editeur,
+                longueur=int(nb_page) if nb_page and str(nb_page).isdigit() else None,
+                type=MediaType.BD,
+            )
+
+        return None
 
     @staticmethod
     @st.cache_data
