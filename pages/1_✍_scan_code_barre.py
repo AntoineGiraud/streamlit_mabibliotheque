@@ -6,6 +6,8 @@ from db.connection import get_connection
 
 from sqlmodel import Session
 from models.item import Item
+from services.item_service import ItemService
+
 
 # ------------------------
 # CONFIG
@@ -35,7 +37,7 @@ if submitted and code_input:
     with st.spinner("🔍 Recherche en cours..."):
         db_conn = get_connection()
         with Session(db_conn.engine, expire_on_commit=False) as session:
-            item, is_new = Item.get_or_create(code_input, session)
+            item, is_new = ItemService.get_or_create(code_input, session)
             print(f"{item=}, nouveau={is_new}")
             if item and is_new:
                 crud.fetch_model_into_streamlitsessionstate(st.session_state, Item, session)
