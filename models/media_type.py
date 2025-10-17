@@ -7,6 +7,7 @@ class MediaType(str, Enum):
     Livre = "Livre"
     BD = "BD"
     DVD = "DVD"
+    Jeu = "Jeu"
 
     @property
     def emoji(self) -> str:
@@ -15,6 +16,7 @@ class MediaType(str, Enum):
             MediaType.Livre: "📖",
             MediaType.BD: "📚",
             MediaType.DVD: "🎬",
+            MediaType.Jeu: "🎲",
         }.get(self, "❓")
 
     @property

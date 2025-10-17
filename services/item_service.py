@@ -33,27 +33,59 @@ class ItemService:
 
     @staticmethod
     def from_barcode(code: int) -> Optional[Item]:
-        """Essaie de récupérer un item (livre, bd, dvd, cd ...) via ISBN ou UPC"""
+        """Essaie de récupérer un item (livre, bd, dvd, cd, jeu ...) via GTIN"""
         if not isinstance(code, int):
             raise ValueError("Le code doit être un entier")
 
-        # 1. Appel API Google si ISBN
+        # 1. Jeux de société ? (avant tout)
+        item = ItemService.from_local_boardgame_dataset(code)
+        if item:
+            return item
+
+        # 2. ISBN → Google
         if str(code).startswith(("978", "979", "977")):
             item = ItemService.from_googleapi_books(code)
-
-            # 2. Bonification via fichier local BD (si trouvé)
             if item:
-                enriched = ItemService.enrich_with_local_bd_data(item, code)
-                return enriched
+                return ItemService.enrich_with_local_bd_data(item, code)
 
-            # 3. Si Google échoue, fallback Parquet BD
+            # 3. Fallback BD locale
             item = ItemService.from_local_bd_dataset(code)
             if item:
                 return item
 
-        # 4. Fallback UPC
+        # 4. Sinon, dernier fallback UPC
         return ItemService.from_upcitemdb(code)
 
+    @staticmethod
+    def from_local_boardgame_dataset(code: int) -> Optional[Item]:
+        """Essaie de créer un Item depuis le fichier local s'il correspond à un jeu de société"""
+        parquet_path = "data/gtin_jeuxDeSociete.parquet"
+        if not os.path.exists(parquet_path):
+            return None
+
+        try:
+            result = duckdb.sql(f"""
+                SELECT name, brand
+                FROM '{parquet_path}'
+                WHERE gtin = {code}
+                LIMIT 1
+            """).fetchone()
+        except Exception as e:
+            st.warning(f"Erreur DuckDB (jeu de société) : {e}")
+            return None
+
+        if result:
+            print(f"🎲 jeu trouvé {result=}")
+            name, brand = result
+            return Item(
+                code=code,
+                titre=name or "Jeu sans nom",
+                editeur=brand,
+                type=MediaType("Jeu"),
+                genre="Jeu de société",
+            )
+
+        return None
 
     @staticmethod
     def enrich_with_local_bd_data(item: Item, code: int) -> Item:

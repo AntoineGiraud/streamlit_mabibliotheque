@@ -24,8 +24,8 @@ df = st.session_state["item_all_df"]
 counts = df.group_by("type").len()
 counts = {cat: nb for cat, nb in counts.iter_rows()}
 
-cols = st.columns(4)
-for i, key in enumerate(["Livre", "BD", "DVD", "CD"]):
+cols = st.columns(5)
+for i, key in enumerate(["Livre", "BD", "DVD", "CD", "Jeu"]):
     cols[i].metric(label=key, value=counts.get(key), border=True)
 
 # 9782226500342 - jardin
