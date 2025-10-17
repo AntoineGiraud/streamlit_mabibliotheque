@@ -35,8 +35,6 @@ class Item(SQLModel, table=True):
 
     @property
     def label_with_emoji(self) -> str:
-        if not isinstance(self.type, MediaType):
-            self.type = MediaType(self.type)
         return f"{self.type.emoji} {self.type.value} `{self.titre}`"
 
     @staticmethod
