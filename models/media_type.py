@@ -31,3 +31,8 @@ class MediaType(str, Enum):
         elif "book" in cat:
             return cls("Livre")
         return None
+
+    @classmethod
+    def list_values(cls) -> str:
+        """Retourne les valeurs disponibles sous forme de chaîne (ex: 'Livre, BD, CD')"""
+        return ", ".join(e.value for e in cls)

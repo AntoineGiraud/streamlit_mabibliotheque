@@ -6,6 +6,7 @@ from db.connection import get_connection
 
 from sqlmodel import Session
 from models.item import Item
+from models.media_type import MediaType
 from services.item_service import ItemService
 
 
@@ -23,7 +24,7 @@ st.title("Recherche par code-barre 📹📚")
 
 with st.form("scan_form", clear_on_submit=True):
     code_input = st.number_input(
-        "Le code-barres du film ou du livre",
+        f"Le code-barre de votre article ({MediaType.list_values()})",
         step=1,
         value=None,
         placeholder="Type a number...",

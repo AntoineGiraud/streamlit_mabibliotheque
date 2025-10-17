@@ -2,6 +2,7 @@ import streamlit as st
 
 from sqlmodel import Session, select
 from models.item import Item
+from models.media_type import MediaType
 
 import db.crud as crud
 from db.connection import get_connection
@@ -25,7 +26,7 @@ counts = df.group_by("type").len()
 counts = {cat: nb for cat, nb in counts.iter_rows()}
 
 cols = st.columns(5)
-for i, key in enumerate(["Livre", "BD", "DVD", "CD", "Jeu"]):
+for i, key in enumerate(MediaType.list_values()):
     cols[i].metric(label=key, value=counts.get(key), border=True)
 
 # 9782226500342 - jardin
