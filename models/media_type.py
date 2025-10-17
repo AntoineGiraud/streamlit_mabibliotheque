@@ -36,3 +36,8 @@ class MediaType(str, Enum):
     def list_values(cls) -> str:
         """Retourne les valeurs disponibles sous forme de chaîne (ex: 'Livre, BD, CD')"""
         return ", ".join(e.value for e in cls)
+
+    @classmethod
+    def values(cls) -> list[str]:
+        """Retourne une liste des valeurs disponibles (ex: ['Livre', 'BD', 'CD'])"""
+        return [e.value for e in cls]

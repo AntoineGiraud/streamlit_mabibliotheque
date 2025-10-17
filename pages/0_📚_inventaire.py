@@ -26,7 +26,7 @@ counts = df.group_by("type").len()
 counts = {cat: nb for cat, nb in counts.iter_rows()}
 
 cols = st.columns(5)
-for i, key in enumerate(MediaType.list_values()):
+for i, key in enumerate(MediaType.values()):
     cols[i].metric(label=key, value=counts.get(key), border=True)
 
 # 9782226500342 - jardin
