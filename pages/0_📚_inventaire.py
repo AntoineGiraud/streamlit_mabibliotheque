@@ -51,7 +51,10 @@ if st.button("💾 Sauvegarder les modifications", type="primary"):
         if sum(recap.values()) > 0:
             crud.fetch_model_into_streamlitsessionstate(st.session_state, Item, session)
 
-            st.toast(f"Modifications enregistrées. {recap=}")
+            st.session_state["success_msg"] = f"Modifications enregistrées. {recap=}"
+            print(st.session_state["success_msg"])
             st.rerun()
 
-    print(f"    ✅ {recap=}")
+if "success_msg" in st.session_state:
+    st.info(st.session_state["success_msg"])
+    del st.session_state["success_msg"]
