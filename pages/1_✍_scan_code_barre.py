@@ -43,6 +43,6 @@ if submitted and code_input:
 
         # affichage du résultat en cours
         col_json, col_couverture = st.columns((3, 1))
-        col_json.json(item)
+        col_json.json(item.model_dump())
         if item.couverture:
             col_couverture.image(item.couverture, caption=item.titre)
