@@ -6,8 +6,9 @@ from sqlmodel import Session
 from utils.form_generator import render_form
 from utils.render_item_form import render_item_form
 
+from db import crud
 
-st.title("➕ Ajouter un nouvel item")
+st.title("📝 Ajouter un nouvel item")
 
 # Formulaire dynamique # dépendances pydandic V2 cassée
 # item_data = pydantic_form(key="ajout_item_form", model=Item)
@@ -23,3 +24,5 @@ if item_data:
         session.add(item_data)
         session.commit()
         st.info(f"Item '{item_data.titre}' ajouté à la bibliothèque.")
+
+        crud.fetch_model_into_streamlitsessionstate(st.session_state, Item, session)

@@ -5,36 +5,58 @@ from models.media_type import MediaType
 
 def render_item_form() -> Item | None:
     with st.form("item_form", clear_on_submit=False):
-        # Champs principaux
-        titre = st.text_input("Titre", max_chars=200)
-        auteur = st.text_input("Auteur")
-        type_ = st.selectbox("Type", options=[e.value for e in MediaType])
-        genre = st.text_input("Genre")
-        annee = st.number_input("Année", min_value=1900, max_value=2030, step=1, format="%d")
-        note = st.slider("Note (0 à 5)", min_value=0, max_value=5, step=1)
-        langue = st.text_input("Langue")
-        description = st.text_area("Description", height=100)
-        longueur = st.number_input("Longueur (pages, minutes…)", min_value=0, max_value=5000, step=1)
+        # Titre sur toute la largeur
+        titre = st.text_input("📚 Titre *", max_chars=200)
 
-        # Champs complémentaires
-        editeur = st.text_input("Éditeur")
-        couverture = st.text_input("URL de la couverture")
-        code = st.number_input("Code-barres", min_value=1e10, max_value=1e14, step=1.0, format="%.0f")
+        # Ligne 1 : Auteur - Type - Genre
+        col1, col2, col3 = st.columns([1, 1, 1])
+        with col1:
+            auteur = st.text_input("✍️ Auteur")
+        with col2:
+            type_ = st.selectbox("🎞 Type *", options=[e.value for e in MediaType])
+        with col3:
+            genre = st.text_input("🏷 Genre")
 
-        submitted = st.form_submit_button("✅ Enregistrer", type="primary")
+        # Ligne 2 : Année - Note - Langue
+        col4, col5, col6 = st.columns([1, 1, 1])
+        with col4:
+            annee = st.number_input("📅 Année", min_value=1900, max_value=2030, step=1, format="%d", value=2020)
+        with col5:
+            note = st.slider("⭐ Note", min_value=0, max_value=5, step=1)
+        with col6:
+            langue = st.text_input("🌍 Langue")
+
+        # Ligne 3 : Longueur - Éditeur - Code-barres
+        col7, col8, col9 = st.columns([1, 1, 1])
+        with col7:
+            longueur = st.number_input("📏 Longueur", min_value=0, max_value=5000, step=1)
+        with col8:
+            editeur = st.text_input("🏢 Éditeur")
+        with col9:
+            code = st.text_input("📦 Code-barres")
+
+        # Description pleine largeur
+        description = st.text_area("📝 Description", height=100)
+
+        # Couverture sur toute la ligne
+        couverture = st.text_input("🖼 URL de la couverture")
+
+        # Soumission
+        submitted = st.form_submit_button("✅ Enregistrer")
 
         if submitted:
             if not titre or not type_:
-                st.warning("Merci de remplir les champs obligatoires : Titre et Type.")
+                st.warning("Merci de remplir les champs obligatoires : **Titre** et **Type**.")
                 return None
 
+            # Nettoyage des données
             return Item(
-                titre=titre,
+                titre=titre.strip(),
                 auteur=auteur or None,
                 type=MediaType(type_),
                 genre=genre or None,
                 annee=int(annee) if annee else None,
-                note=note,
+                note=int(note) if note else None,
                 language=langue or None,
                 description=description or None,
                 longueur=int(longueur) if longueur else None,
