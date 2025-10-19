@@ -27,30 +27,21 @@ class ItemForm:
 
         # Ligne 1 : Auteur - Type - Genre
         col1, col2, col3 = st.columns([1, 1, 1])
-        with col1:
-            st.selectbox("🎞 Type", key=f"{ItemForm.PREFIX}_type", options=[e.value for e in MediaType])
-        with col2:
-            st.text_input("✍️ Auteur", key=f"{ItemForm.PREFIX}_auteur")
-        with col3:
-            st.text_input("🏷 Genre", key=f"{ItemForm.PREFIX}_genre")
+        col1.selectbox("🎞 Type", key=f"{ItemForm.PREFIX}_type", options=[e.value for e in MediaType])
+        col2.text_input("✍️ Auteur", key=f"{ItemForm.PREFIX}_auteur")
+        col3.text_input("🏷 Genre", key=f"{ItemForm.PREFIX}_genre")
 
         # Ligne 2 : Année - Note - Langue
         col4, col5, col6 = st.columns([1, 1, 1])
-        with col4:
-            st.number_input("📅 Année", key=f"{ItemForm.PREFIX}_annee", min_value=1900, max_value=2030, step=1, format="%d")
-        with col5:
-            st.number_input("⭐ Note", key=f"{ItemForm.PREFIX}_note", min_value=0, max_value=5, step=1)
-        with col6:
-            st.text_input("🌍 Langue", key=f"{ItemForm.PREFIX}_langue")
+        col4.number_input("📅 Année", key=f"{ItemForm.PREFIX}_annee", min_value=1900, max_value=2030, step=1, format="%d")
+        col5.number_input("⭐ Note", key=f"{ItemForm.PREFIX}_note", min_value=0, max_value=5, step=1)
+        col6.text_input("🌍 Langue", key=f"{ItemForm.PREFIX}_langue")
 
         # Ligne 3 : Longueur - Éditeur - Code-barres
         col7, col8, col9 = st.columns([1, 1, 1])
-        with col7:
-            st.number_input("📏 Longueur", key=f"{ItemForm.PREFIX}_longueur", min_value=0, max_value=5000, step=1)
-        with col8:
-            st.text_input("🏢 Éditeur", key=f"{ItemForm.PREFIX}_editeur")
-        with col9:
-            st.number_input("📦 Code-barres", key=f"{ItemForm.PREFIX}_code", step=1)
+        col7.number_input("📏 Longueur", key=f"{ItemForm.PREFIX}_longueur", min_value=0, max_value=5000, step=1)
+        col8.text_input("🏢 Éditeur", key=f"{ItemForm.PREFIX}_editeur")
+        col9.number_input("📦 Code-barres", key=f"{ItemForm.PREFIX}_code", step=1)
 
         # Description pleine largeur
         st.text_area("📝 Description", key=f"{ItemForm.PREFIX}_description", height=100)
