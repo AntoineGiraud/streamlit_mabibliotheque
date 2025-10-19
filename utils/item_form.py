@@ -4,71 +4,65 @@ from models.media_type import MediaType
 
 
 class ItemForm:
-    def __init__(self, item: Item | None = None, prefix="item_form"):
-        self.prefix = prefix
-        self.item = item
-        self.fields = Item.__fields__.keys()
-        if self.item:
-            self.init_session_state()
+    PREFIX = "item_form"
+    ITEM_FIELDS = Item.__fields__.keys()
 
-    def init_session_state(self):
-        for field in self.fields:
-            key = f"{self.prefix}_{field}"
-            field_value = getattr(self.item, field) if self.item else None
-            if key not in st.session_state:
-                if field == "type":
-                    st.session_state[key] = field_value.value
-                else:
-                    st.session_state[key] = field_value
+    def __init__(self):
+        pass
 
     @staticmethod
-    def flush_session_state(prefix="item_form"):
-        for field in Item.__fields__.keys():
-            key = f"{prefix}_{field}"
-            if key in st.session_state:
-                st.session_state.pop(key)
+    def init_session_state(item: Item | None):
+        for field in ItemForm.ITEM_FIELDS:
+            key = f"{ItemForm.PREFIX}_{field}"
+            field_value = getattr(item, field) if item else None
+            if field == "type" and item:
+                st.session_state[key] = field_value.value
+            else:
+                st.session_state[key] = field_value
 
-    def render_fields(self):
+    @staticmethod
+    def render_fields():
         # Titre sur toute la largeur
-        st.text_input("📚 Titre", key=f"{self.prefix}_titre", max_chars=200)
+        st.text_input("📚 Titre", key=f"{ItemForm.PREFIX}_titre", max_chars=200)
 
         # Ligne 1 : Auteur - Type - Genre
         col1, col2, col3 = st.columns([1, 1, 1])
         with col1:
-            st.selectbox("🎞 Type", key=f"{self.prefix}_type", options=[e.value for e in MediaType])
+            st.selectbox("🎞 Type", key=f"{ItemForm.PREFIX}_type", options=[e.value for e in MediaType])
         with col2:
-            st.text_input("✍️ Auteur", key=f"{self.prefix}_auteur")
+            st.text_input("✍️ Auteur", key=f"{ItemForm.PREFIX}_auteur")
         with col3:
-            st.text_input("🏷 Genre", key=f"{self.prefix}_genre")
+            st.text_input("🏷 Genre", key=f"{ItemForm.PREFIX}_genre")
 
         # Ligne 2 : Année - Note - Langue
         col4, col5, col6 = st.columns([1, 1, 1])
         with col4:
-            st.number_input("📅 Année", key=f"{self.prefix}_annee", min_value=1900, max_value=2030, step=1, format="%d")
+            st.number_input("📅 Année", key=f"{ItemForm.PREFIX}_annee", min_value=1900, max_value=2030, step=1, format="%d")
         with col5:
-            st.number_input("⭐ Note", key=f"{self.prefix}_note", min_value=0, max_value=5, step=1)
+            st.number_input("⭐ Note", key=f"{ItemForm.PREFIX}_note", min_value=0, max_value=5, step=1)
         with col6:
-            st.text_input("🌍 Langue", key=f"{self.prefix}_langue")
+            st.text_input("🌍 Langue", key=f"{ItemForm.PREFIX}_langue")
 
         # Ligne 3 : Longueur - Éditeur - Code-barres
         col7, col8, col9 = st.columns([1, 1, 1])
         with col7:
-            st.number_input("📏 Longueur", key=f"{self.prefix}_longueur", min_value=0, max_value=5000, step=1)
+            st.number_input("📏 Longueur", key=f"{ItemForm.PREFIX}_longueur", min_value=0, max_value=5000, step=1)
         with col8:
-            st.text_input("🏢 Éditeur", key=f"{self.prefix}_editeur")
+            st.text_input("🏢 Éditeur", key=f"{ItemForm.PREFIX}_editeur")
         with col9:
-            st.number_input("📦 Code-barres", key=f"{self.prefix}_code", step=1)
+            st.number_input("📦 Code-barres", key=f"{ItemForm.PREFIX}_code", step=1)
 
         # Description pleine largeur
-        st.text_area("📝 Description", key=f"{self.prefix}_description", height=100)
+        st.text_area("📝 Description", key=f"{ItemForm.PREFIX}_description", height=100)
 
         # Couverture sur toute la ligne
-        st.text_input("🖼 URL de la couverture", key=f"{self.prefix}_couverture")
+        st.text_input("🖼 URL de la couverture", key=f"{ItemForm.PREFIX}_couverture")
 
-    def get_data(self) -> dict:
+    @staticmethod
+    def get_data() -> dict:
         data = {}
-        for field in self.fields:
-            key = f"{self.prefix}_{field}"
+        for field in ItemForm.ITEM_FIELDS:
+            key = f"{ItemForm.PREFIX}_{field}"
             if key in st.session_state:
                 data[field] = st.session_state[key]
 
@@ -94,7 +88,7 @@ class ItemForm:
             return None
 
     def render(self) -> Item | None:
-        with st.form(self.prefix):
+        with st.form(ItemForm.PREFIX):
             self.render_fields()
             submitted = st.form_submit_button("💾 Enregistrer")
             if submitted:
