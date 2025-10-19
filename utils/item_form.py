@@ -10,13 +10,17 @@ class ItemForm:
         self.fields = Item.__fields__.keys()
         if self.item:
             self.init_session_state()
+            st.info(f"{self.item=}")
 
     def init_session_state(self):
         for field in self.fields:
             key = f"{self.prefix}_{field}"
-            if key not in st.session_state:
-                val = getattr(self.item, field) if self.item else None
-                st.session_state[key] = val
+            field_value = getattr(self.item, field) if self.item else None
+            if key not in st.session_state or st.session_state[key] != field_value:
+                if field == "type":
+                    st.session_state[key] = field_value.value
+                else:
+                    st.session_state[key] = field_value
 
     def render_fields(self):
         # Titre sur toute la largeur
@@ -34,9 +38,9 @@ class ItemForm:
         # Ligne 2 : Année - Note - Langue
         col4, col5, col6 = st.columns([1, 1, 1])
         with col4:
-            st.number_input("📅 Année", key=f"{self.prefix}_annee", min_value=1900, max_value=2030, step=1, format="%d", value=2020)
+            st.number_input("📅 Année", key=f"{self.prefix}_annee", min_value=1900, max_value=2030, step=1, format="%d")
         with col5:
-            st.slider("⭐ Note", key=f"{self.prefix}_note", min_value=0, max_value=5, step=1)
+            st.number_input("⭐ Note", key=f"{self.prefix}_note", min_value=0, max_value=5, step=1)
         with col6:
             st.text_input("🌍 Langue", key=f"{self.prefix}_langue")
 
@@ -47,7 +51,7 @@ class ItemForm:
         with col8:
             st.text_input("🏢 Éditeur", key=f"{self.prefix}_editeur")
         with col9:
-            st.text_input("📦 Code-barres", key=f"{self.prefix}_code")
+            st.number_input("📦 Code-barres", key=f"{self.prefix}_code", step=1)
 
         # Description pleine largeur
         st.text_area("📝 Description", key=f"{self.prefix}_description", height=100)
