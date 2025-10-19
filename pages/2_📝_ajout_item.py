@@ -20,9 +20,9 @@ if "selected_item_id" not in st.session_state:
 
 # 🧱 Construction des options avec emoji
 select_options = [("➕ Ajouter un nouvel item", None)]
-for item in sorted(all_items, key=lambda i: (i.type.value, i.titre.lower())):
-    label = f"{item.type.emoji} {item.titre}"
-    select_options.append((label, item))
+for itm in sorted(all_items, key=lambda i: (i.type.value, i.titre.lower())):
+    label = f"{itm.type.emoji} {itm.titre}"
+    select_options.append((label, itm))
 
 # 🔽 Selectbox pour choisir l’item
 selected_label, selected_item = st.selectbox(
@@ -38,6 +38,7 @@ new_id = selected_item.id if selected_item else None
 
 if new_id != prev_id:
     st.session_state.selected_item_id = new_id
+    ItemForm.flush_session_state()
     st.rerun()
 
 # 🔄 Retrouver l’item à partir du state (pour cohérence sur tous les runs)

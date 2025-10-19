@@ -10,17 +10,23 @@ class ItemForm:
         self.fields = Item.__fields__.keys()
         if self.item:
             self.init_session_state()
-            st.info(f"{self.item=}")
 
     def init_session_state(self):
         for field in self.fields:
             key = f"{self.prefix}_{field}"
             field_value = getattr(self.item, field) if self.item else None
-            if key not in st.session_state or st.session_state[key] != field_value:
+            if key not in st.session_state:
                 if field == "type":
                     st.session_state[key] = field_value.value
                 else:
                     st.session_state[key] = field_value
+
+    @staticmethod
+    def flush_session_state(prefix="item_form"):
+        for field in Item.__fields__.keys():
+            key = f"{prefix}_{field}"
+            if key in st.session_state:
+                st.session_state.pop(key)
 
     def render_fields(self):
         # Titre sur toute la largeur
