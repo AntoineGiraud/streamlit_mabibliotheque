@@ -50,8 +50,12 @@ item = ItemForm(item_to_edit).render()
 if item:
     st.success(f"✅ Données validées ! {item.label_with_emoji}")
 
+    # 🆔 Si on modifie un item, il faut lui réinjecter l'id
+    if item_to_edit and not item.id:
+        item.id = item_to_edit.id
+
     with Session(db_conn.engine, expire_on_commit=False) as session:
-        session.add(item)
+        session.merge(item)
         session.commit()
         st.info(f"Item '{item.titre}' enregistré dans la bibliothèque.")
 
