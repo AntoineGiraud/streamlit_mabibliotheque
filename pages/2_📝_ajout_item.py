@@ -3,8 +3,7 @@ import streamlit as st
 from models import Item, MediaType
 from db.connection import get_connection
 from sqlmodel import Session
-from utils.form_generator import render_form
-from utils.render_item_form import render_item_form
+from utils.item_form import ItemForm
 
 from db import crud
 
@@ -16,7 +15,8 @@ st.title("📝 Ajouter un nouvel item")
 
 item_to_edit = None  # charger un Item si besoin
 
-item = render_item_form(item_to_edit)
+item = ItemForm(item_to_edit).render()
+
 
 if item:
     st.success(f"✅ Données validées ! {item.label_with_emoji}")
