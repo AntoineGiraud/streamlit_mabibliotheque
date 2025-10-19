@@ -1,48 +1,59 @@
 import streamlit as st
+from sqlmodel import Session, select
 
 from models import Item, MediaType
 from db.connection import get_connection
-from sqlmodel import Session, select
 from utils.item_form import ItemForm
 from db import crud
-from collections import defaultdict
 
+# ⬆️ Titre
 st.title("📝 Ajouter ou modifier un item")
 
-# 1. Connexion DB pour charger les articles
+# 🚀 Connexion à la base
 db_conn = get_connection()
 with Session(db_conn.engine, expire_on_commit=False) as session:
-    items = session.exec(select(Item)).all()
+    all_items = session.exec(select(Item)).all()
 
-# 2. Construire les options avec emoji par type de média
-# Option 0 : ajout d'un nouvel item
+# 🧠 Init du state
+if "selected_item_id" not in st.session_state:
+    st.session_state.selected_item_id = None
+
+# 🧱 Construction des options avec emoji
 select_options = [("➕ Ajouter un nouvel item", None)]
-
-# Ajouter tous les items avec emoji devant le titre
-for item in sorted(items, key=lambda x: (x.type.value, x.titre.lower())):
-    emoji = item.type.emoji
-    label = f"{emoji} {item.titre}"
+for item in sorted(all_items, key=lambda i: (i.type.value, i.titre.lower())):
+    label = f"{item.type.emoji} {item.titre}"
     select_options.append((label, item))
 
-# 3. Afficher la selectbox
-selected_label, item_to_edit = st.selectbox(
+# 🔽 Selectbox pour choisir l’item
+selected_label, selected_item = st.selectbox(
     "🔍 Choisissez un item à modifier (ou rien pour en ajouter un nouveau)",
     options=select_options,
     format_func=lambda x: x[0],
+    index=0,  # par défaut : "ajouter"
 )
 
-# 4. Formulaire avec ou sans données
+# 🔁 Mise à jour du state + forcer reload si changement
+prev_id = st.session_state.selected_item_id
+new_id = selected_item.id if selected_item else None
+
+if new_id != prev_id:
+    st.session_state.selected_item_id = new_id
+    st.rerun()
+
+# 🔄 Retrouver l’item à partir du state (pour cohérence sur tous les runs)
+item_to_edit = next((i for i in all_items if i.id == st.session_state.selected_item_id), None)
+
+# 📝 Afficher le formulaire
 item = ItemForm(item_to_edit).render()
 
-# 5. Traitement du formulaire
+# 💾 Traitement après validation du formulaire
 if item:
     st.success(f"✅ Données validées ! {item.label_with_emoji}")
 
-    # Sauvegarde dans la base
-    db_conn = get_connection()
     with Session(db_conn.engine, expire_on_commit=False) as session:
         session.add(item)
         session.commit()
         st.info(f"Item '{item.titre}' enregistré dans la bibliothèque.")
 
+        # Refresh du cache d'objets
         crud.fetch_model_into_streamlitsessionstate(st.session_state, Item, session)
