@@ -87,15 +87,14 @@ class ItemService:
 
         return None
 
-    @staticmethod
-    def enrich_with_local_bd_data(item: Item, code: int) -> Item:
-        """Cherche dans le .parquet si l'ISBN correspond à une BD et enrichit l'item"""
+    def fetch_BD_from_parquet(code: int) -> dict | None:
+        """Cherche dans le .parquet si l'ISBN correspond à une BD et la retourne"""
         parquet_path = "data/isbn_nudger_BD.parquet"
         if not os.path.exists(parquet_path):
-            return item  # Fichier absent → rien à faire
+            return None  # Fichier absent → rien à faire
 
         query = f"""
-            SELECT title, editeur, nb_page
+            SELECT title as titre, editeur, TRY_CAST(nb_page as int) as longueur, classification_decitre_2 as genre
             FROM '{parquet_path}'
             WHERE isbn = {code}
             LIMIT 1
@@ -103,49 +102,26 @@ class ItemService:
 
         try:
             result = duckdb.sql(query).fetchone()
+            return dict(zip(("titre", "editeur", "longueur", "genre"), result)) if result else None
         except Exception as e:
             st.warning(f"Erreur DuckDB : {e}")
-            return item
+            return None
 
-        if result:
-            title, editeur, nb_page = result
+    @staticmethod
+    def enrich_with_local_bd_data(item: Item, code: int) -> Item:
+        """Cherche dans le .parquet si l'ISBN correspond à une BD et enrichit l'item"""
+        if result := ItemService.fetch_BD_from_parquet(code):
             item.type = MediaType.BD
-            if title:
-                item.titre = title
-            if editeur:
-                item.editeur = editeur
-            if nb_page and str(nb_page).isdigit():
-                item.longueur = int(nb_page)
+            for attr, value in result.items():
+                if value:
+                    setattr(item, attr, value)
         return item
 
     @staticmethod
     def from_local_bd_dataset(code: int) -> Optional[Item]:
         """Construit un Item à partir des données locales si le code correspond à une BD"""
-        parquet_path = "data/isbn_nudger_BD.parquet"
-        if not os.path.exists(parquet_path):
-            return None
-
-        query = f"""
-            SELECT title, editeur, nb_page
-            FROM '{parquet_path}'
-            WHERE isbn = {code}
-            LIMIT 1
-        """
-        try:
-            result = duckdb.sql(query).fetchone()
-        except Exception as e:
-            st.warning(f"Erreur DuckDB fallback : {e}")
-            return None
-
-        if result:
-            title, editeur, nb_page = result
-            return Item(
-                code=code,
-                titre=title or "Titre inconnu",
-                editeur=editeur,
-                longueur=int(nb_page) if nb_page and str(nb_page).isdigit() else None,
-                type=MediaType.BD,
-            )
+        if result := ItemService.fetch_BD_from_parquet(code):
+            return Item(type=MediaType.BD, **result)
 
         return None
 

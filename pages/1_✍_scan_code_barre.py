@@ -37,7 +37,6 @@ if submitted and code_input:
         db_conn = get_connection()
         with Session(db_conn.engine, expire_on_commit=False) as session:
             item, is_new = ItemService.get_or_create(code_input, session)
-            print(f"{item=}, nouveau={is_new}")
             if item and is_new:
                 crud.fetch_model_into_streamlitsessionstate(st.session_state, Item, session)
     if item:
