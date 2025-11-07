@@ -9,7 +9,7 @@ from db.connection import get_connection
 import polars as pl
 
 
-st.title("📋 Liste interactive des items")
+st.title("📚 Liste interactive des items")
 
 
 db_conn = get_connection()
@@ -29,8 +29,6 @@ cols = st.columns(5)
 for i, key in enumerate(MediaType.values()):
     cols[i].metric(label=key, value=counts.get(key), border=True)
 
-# 9782226500342 - jardin
-# 9782843784477 - mots
 # --------------------------------
 # Édition en place
 # --------------------------------

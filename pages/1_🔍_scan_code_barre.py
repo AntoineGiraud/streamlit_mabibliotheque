@@ -12,14 +12,17 @@ from services.item_service import ItemService
 # CONFIG
 # ------------------------
 
-st.set_page_config(page_title="Recherche par code-barres", page_icon="📚")
-st.title("Recherche par code-barre 📹📚")
+st.set_page_config(page_title="Ajout via code-barres", page_icon="🔍")
+st.title("🔍 Recherche par code-barre 📹📚")
 
 
 # ------------------------
 # UI
 # ------------------------
 
+# 9780525543022 - The Personal MBA
+# 97361461540 - Tintin
+# 9782843784477 - mes 1ers mots
 with st.form("scan_form", clear_on_submit=True):
     code_input = st.number_input(
         f"Le code-barre de votre article ({MediaType.list_values()})",
