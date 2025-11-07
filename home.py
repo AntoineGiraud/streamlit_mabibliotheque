@@ -9,7 +9,7 @@ st.set_page_config(page_title="Ma biblothèque", page_icon="🧰", layout="wide"
 # Création des pages pour la navigation
 pages = [
     st.Page("pages/0_📚_inventaire.py", title="Inventaire", icon="📚"),
-    st.Page("pages/1_✍_scan_code_barre.py", title="Scan code barre", icon="✍"),
+    st.Page("pages/1_🔍_scan_code_barre.py", title="Scan code barre", icon="✍"),
     st.Page("pages/2_📝_ajout_item.py", title="Ajout item", icon="📝"),
 ]
 
