@@ -1,6 +1,6 @@
 # Ma bibliothèque Streamlit 📚
 
-Voici une [app Streamlit](https://ma-biblitheque.streamlit.app/) pour inventorier le contenu de votre bibliothèque (Livres, BD, DVD, jeux de société ...)
+Voici une [app Streamlit](https://bibliotheque.streamlit.app/) pour inventorier le contenu de votre bibliothèque (Livres, BD, DVD, jeux de société ...)
 
 ## Fonctionnalités
 
