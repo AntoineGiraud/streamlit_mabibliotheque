@@ -17,6 +17,14 @@ Si c'est un **livre** (code débutant par 978/979/977), on s'appuie sur l'api bo
 1. installer uv 👉 cf. [doc astral/uv](https://docs.astral.sh/uv/getting-started/installation/)
 2. lancer l'app streamlit : `uv run streamlit run home.py`
 
+### Astuces développement
+
+- charger le .venv dans le terminal (pour utiliser `streamlit` sans `uv run` avant)
+  - `source .venv/bin/activate` (linux) ou `.venv/Scripts/activate.ps1` (windows)
+- s'assurer que `pre-commit` est installé
+  - `uv run pre-commit install` : initialiser le hook git
+    - juste avec ça, sur les prochains fichiers édités, ruff sera lancé automatiquement
+  - `uv run pre-commit run --all-files` : pour traiter TOUS les fichiers
 
 ## Inspirations & ressources
 
