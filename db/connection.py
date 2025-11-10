@@ -54,7 +54,6 @@ def get_connection():
             ]
             session.add_all(exemples)
             session.commit()
-            st.success("Exemples insérés dans la table item.")
 
         # Charger dans session_state
         crud.fetch_model_into_streamlitsessionstate(st.session_state, Item, session)

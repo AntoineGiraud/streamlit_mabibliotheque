@@ -9,7 +9,6 @@ from typing import Dict, TypeVar, Type, Optional
 from sqlmodel import SQLModel, Session, select
 from models.item import Item
 
-from db.connection import get_connection
 
 T = TypeVar("T", bound=SQLModel)
 
@@ -20,6 +19,8 @@ def fetch_model_into_streamlitsessionstate(
     session: Session = None,
 ):
     if not session:
+        from db.connection import get_connection
+
         db_conn = get_connection()
         with Session(db_conn.engine) as s:
             session = s
