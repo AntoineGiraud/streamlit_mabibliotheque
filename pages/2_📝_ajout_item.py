@@ -1,7 +1,7 @@
 import streamlit as st
-from sqlmodel import Session, select
+from sqlmodel import Session
 
-from models import Item, MediaType
+from models import Item
 from db.connection import get_connection
 from utils.item_form import ItemForm
 from db import crud

@@ -29,11 +29,12 @@ def get_connection():
         db_url = f"postgresql://{secrets['db_user']}:{secrets['db_password']}@{secrets['db_host']}:{secrets['db_port']}/{db_name}"
     elif db_type == "duckdb":
         db_url = f"duckdb:///{db_name}.duckdb"
+
     else:
         st.error(f"Type de base non supporté : {db_type}")
         return None
 
-    db_conn = st.connection("sql", url=db_url, type="sql", echo=True)
+    db_conn = st.connection("sql", url=db_url, type="sql")
 
     # Création des tables si elles n'existent pas
     SQLModel.metadata.create_all(db_conn.engine, checkfirst=True)

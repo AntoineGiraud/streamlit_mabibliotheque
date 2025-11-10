@@ -1,12 +1,11 @@
 import streamlit as st
 
-from sqlmodel import Session, select
+from sqlmodel import Session
 
 from models import Item, MediaType
 
 from db import crud
 from db.connection import get_connection
-import polars as pl
 
 
 st.title("📋 Liste interactive des items")

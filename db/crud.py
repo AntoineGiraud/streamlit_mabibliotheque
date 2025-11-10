@@ -5,7 +5,7 @@ Fournit des fonctions réutilisables pour synchroniser des DataFrames avec la DB
 
 import polars as pl
 
-from typing import List, Dict, Any, TypeVar, Type, Tuple, Optional
+from typing import Dict, TypeVar, Type, Optional
 from sqlmodel import SQLModel, Session, select
 from models.item import Item
 

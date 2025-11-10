@@ -19,7 +19,7 @@ def render_form(model_class: type[BaseModel], key_prefix: str = "") -> Optional[
     for field_name, field_info in model_class.model_fields.items():
         field_type = extract_base_type(field_info.annotation)
         default = field_info.default
-        required = field_info.is_required()
+        # required = field_info.is_required()
 
         widget_key = f"{key_prefix}_{field_name}"
 

@@ -1,5 +1,4 @@
 import streamlit as st
-from sqlmodel import SQLModel
 
 from models.item import Item  # important pour que le schéma soit connu
 import db.crud as crud

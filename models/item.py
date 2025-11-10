@@ -1,6 +1,5 @@
-from sqlmodel import SQLModel, Field, select, Session
+from sqlmodel import SQLModel, Field
 from typing import Optional, Dict
-import requests
 
 from sqlalchemy.dialects import sqlite
 from sqlalchemy.schema import CreateTable
