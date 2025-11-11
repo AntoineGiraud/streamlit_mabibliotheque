@@ -31,9 +31,9 @@ Sources:
 
 ### Astuces développement
 
-- charger le .venv dans le terminal (pour utiliser `streamlit` sans `uv run` avant)
+- Charger le .venv dans le terminal (pour utiliser `streamlit` sans `uv run` avant)
   - `source .venv/bin/activate` (linux) ou `.venv/Scripts/activate.ps1` (windows)
-- s'assurer que `pre-commit` est installé
+- S'assurer que `pre-commit` est installé (cf. [📹 vidéo intro](https://youtu.be/2r4uLr8MdcA) - 5min)
   - `uv run pre-commit install` : initialiser le hook git
     - juste avec ça, sur les prochains fichiers édités, ruff sera lancé automatiquement
   - `uv run pre-commit run --all-files` : pour traiter TOUS les fichiers

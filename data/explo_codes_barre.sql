@@ -1,6 +1,6 @@
 
-  
-summarize from read_csv('C:\Users\antoi\Documents\data/open4goods-isbn-dataset.csv', sample_size=100000); --, encoding="latin-1");  
+
+summarize from read_csv('C:\Users\antoi\Documents\data/open4goods-isbn-dataset.csv', sample_size=100000); --, encoding="latin-1");
 
 
 ----------------------------------------------------------------------------------------
@@ -8,8 +8,8 @@ summarize from read_csv('C:\Users\antoi\Documents\data/open4goods-isbn-dataset.c
 ----------------------------------------------------------------------------------------
 summarize from "C:\Users\antoi\Documents\data\codes_barre/isbn.parquet";
 
-copy (	
-	select 
+copy (
+	select
 	  isbn,
 	  trim(title, '"') as title,
 	  trim(editeur, '[]') as editeur,
@@ -26,7 +26,7 @@ copy (
 summarize "C:\Users\antoi\Documents\data\codes_barre/isbn_slim.parquet"
 
 
-select 
+select
   isbn,
   title,
   editeur,
